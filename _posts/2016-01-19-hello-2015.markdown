@@ -29,15 +29,7 @@ Git 就简单说下，[廖雪峰老师的 Git 教程](http://www.liaoxuefeng.com
 
 ### Git 的简单使用
 
-在本地新建一个文件夹 Blog，然后命令行中输入 :
-    
-    $ git init
-
-创建一个没有父节点的分支 gh-pages, 并自动切换到这个分支上
-
-    $ git checkout --orphan gh-pages
-
-在文件夹中手动添加文件和文件夹（也可以使用别人的博客主题），最终形成这样的目录：
+在本地新建一个文件夹Blog，在文件夹中手动添加文件和文件夹（也可以使用别人的博客主题），最终形成这样的目录：
 
 ├── _includes/ 
 
@@ -51,19 +43,23 @@ Git 就简单说下，[廖雪峰老师的 Git 教程](http://www.liaoxuefeng.com
 
 文件填写好后，在 git中输入命令
 
+    // 初始化仓库
+    $ git init
+
     // 将文件添加到暂存区
     $ git add .
 
     // 将文件提交到本地仓库
     $ git commit -m "First commit"
 
-    // 将远程仓库添加一个本地引用
-    $ git remote add origin https://github.com/username/repositoryName.git
+然后在 github 上新建一个仓库，仓库名设置为你的用户名前缀 : username.github.io，例如我的仓库名为：CherishLyf.github.io
 
-    // 最后, 向 origin 推送 gh-pages分支
-    $ git push origin gh-pages
+然后本地仓库与远程仓库关联
 
-现在，访问 https://username.github.com/repositoryName 就可以看到刚才的的博客了
+    $ git remote add origin https://github.com/username/username.github.io.git
+    $ git push origin master
+
+现在，访问 username.github.io 就可以看到刚才的的博客了
 
 ### 搭建本地环境
 

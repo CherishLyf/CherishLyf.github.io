@@ -1,0 +1,153 @@
+---
+layout:     post
+title:      "Gulp 简易入门及 API 介绍"
+subtitle:   " \"Gulp 学习笔记\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - 前端工具
+---
+
+> “Gulp 是一个自动化工具，可以简化前端开发的一些工作 ”
+
+
+## 安装 Gulp
+
+安装 node.js 之后，在全局方式下安装 gulp :
+    
+    npm install -g gulp
+
+## 创建 Gulp 项目
+
+首先创建一个文件夹，比如 project，在该文件下执行 npm init 指令：
+    
+    npm init
+
+这个命令会创建一个 package.json 文件，这个文件保存着这个项目的信息，比如需要的各种依赖（主要是插件）
+
+创建完成后，局部安装 gulp
+
+    npm install gulp --save-dev
+
+## 目录结构
+
+webapp目录结构通常是这样的
+
+├── app/
+
+│ └── css/
+
+│ └── fonts/
+
+│ └── images/
+
+│ └── index.html
+
+│ └── js/
+
+│ └── scss/
+
+├── dist/
+
+├── gulpfile.js
+
+├── node_modules/
+
+└── package.json
+
+## Gulp API 介绍
+
+ - gulp.task()
+ - gulp.src()
+ - gulp.dest()
+ - gulp.watch()
+
+### gulp.src()
+
+gulp.src() 是用来获取流的，可以用这个方法来读取需要操作的文件
+
+    gulp.src(globs[, options])
+
+### Gulp用到的glob的匹配规则
+
+**globs** 参数是文件的匹配模式，用来匹配文件路径
+**options** 为可选参数，一般用不到
+
+Gulp内部使用了node-glob模块来实现其文件匹配功能。我们可以使用下面这些特殊的字符来匹配我们想要的文件：<br/>
+ `*`  匹配文件路径中的0个或多个字符，但不会匹配路径分隔符，除非路径分隔符出现在末尾<br/>
+`**` 匹配路径中的0个或多个目录及其子目录,需要单独出现，即它左右不能有其他东西了。如果出现在末尾，也能匹配文件。<br/>
+`?` 匹配文件路径中的一个字符(不会匹配路径分隔符)<br/>
+`[...]` 匹配方括号中出现的字符中的任意一个，当方括号中第一个字符为^或!时，则表示不匹配方括号中
+
+比如：<br/>
+`*` 能匹配 `a.js, x.y, abc, abc/`, 但不能匹配 `a/b.js`<br/>
+`*.*` 能匹配 `a.js, style.css, a.b, x.y`<br/>
+`*/*/*.js` 能匹配 `a/b/c.js, x/y/z.js`, 不能匹配`a/b.js, a/b/c/d.js`<br/>
+`**` 能匹配 `abc, a/b.js, a/b/c.js, x/y/z,x/y/z/a.b`, 能用来匹配所有的目录和文件<br/>
+`**/*.js` 能匹配 `foo.js, a/foo.js, a/b/foo.js, a/b/c/foo.js`<br/>
+`a/**/z` 能匹配 `a/z, a/b/z, a/b/c/z, a/d/g/h/j/k/z`<br/>
+`a/**b/z` 能匹配 `a/b/z, a/sb/z`, 但不能匹配`a/x/sb/z`, 因为只有单**单独出现才能匹配多级目录<br/>
+`?.js` 能匹配 `a.js, b.js, c.js`<br/>
+`a??` 能匹配 `a.b, abc`, 但不能匹配`ab/`, 因为它不会匹配路径分隔符<br/>
+`[xyz].js` 只能匹配 `x.js, y.js, z.js`, 不会匹配`xy.js, xyz.js`等, 整个中括号只代表一个字符<br/>
+`[^xyz].js` 能匹配 `a.js, b.js, c.js`等, 不能匹配`x.js, y.js, z.js`
+
+当有多种匹配模式时可以使用数组
+    
+    // 使用数组的方式来匹配多种文件
+    gulp.src(["js/*.js", "css/*.css", "*.html])
+
+### gulp.dest()
+
+gulp.dest() 方法是用来写文件的，该方法把流中的内容写入到文件中， gulp.dest() 传入的路径参数，只能用来指定要生成的目录，而不能指定生成文件的文件名，它生成的文件名使用的是导入到它的文件流本身的文件名
+
+    gulp.dest(path[, option])
+
+**path** 为写入文件的路径
+**options** 为可选的参数对象，通常不需要用到
+
+    var gulp = require("gulp");
+    gulp.src("app/js/jquery.js")
+        .pipe(gulp.dest("dist/foo.js"));
+        // 最终生成的文件路径为 dist/foo.js/jquery.js, 而不是 dist/foo.js
+
+
+#### gulp.task()
+
+gulp.task() 是用来定义任务的，其语法为：
+
+    gulp.task(name, [,deps], fn)
+
+**name** 为任务名
+**deps** 是当前定义的任务需要依赖的其他任务，为一个数组，没有依赖，可以省略
+**fn** 为任务函数，把任务要执行的代码写里面
+
+### gulp.watch()
+
+gulp.watch() 用来监视文件的变化，当文件变化时，可执行相应的任务
+
+    gulp.watch(glob[, option], tasks)
+
+gulp 还有另外一种用法：
+
+    gulp.watch(glob[, option], cb)
+
+**cb** 参数为一个函数，每当监视的文件发生变化时，就会调用这个函数，并且会传入一个对象，这个对象包含了文件的变化信息， `type` 为变化的类型， 可以是 `added, changed, deleted`; `path` 属性为发生变化的文件路径
+
+    gulp.watch("js/**/*.js, function(event){
+        console.log(event.type);   // 变化的类型 added为新增 deleted为删除 changed为改变
+        console.log(event.path);   // 变化文件的路径    
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+

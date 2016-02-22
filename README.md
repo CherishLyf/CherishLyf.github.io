@@ -1,9 +1,81 @@
-# HuxBlog Boilerplate
+偶然看到这个 Jekyll 主题，非常喜欢，正好想搭建属于自己博客，就拿来使用了，等自己有能力之后，写一个真正属于自己的博客。为了表示对原作者的尊重，底部地址就保留了。
 
-##### This is the boilerplate of [Hux Blog](https://github.com/Huxpro/huxpro.github.io), all documents is over there!
+非常感谢博客的作者 [Hux](http://huangxuan.me/), [进入 Github 仓库](https://github.com/Huxpro/huxpro.github.io), [模板仓库](https://github.com/Huxpro/huxblog-boilerplate)
 
-#### [View Boilerplate &rarr;](http://huangxuan.me/huxblog-boilerplate/)
+## 搭建过程
 
-#### [View Live Hux Blog &rarr;](http://huangxuan.me)
+技术实现：通过 Github Pages + Jekyll 快速搭建博客
 
-## If you like Hux Blog, Please star [huxpro.github.io repo](https://github.com/Huxpro/huxpro.github.io) instead of this! Thank you!
+Git 就简单说下，[廖雪峰老师的 Git 教程](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000) 写的很详细
+
+### Git 的简单使用
+
+在本地新建一个文件夹Blog，在文件夹中手动添加文件和文件夹（也可以使用别人的博客主题），最终形成这样的目录：
+
+├── _includes/ 
+
+├── _layouts/ 
+
+├── _posts.js 
+
+├── .gitignore
+
+└── index.html
+
+文件填写好后，在 git中输入命令
+
+    // 初始化仓库
+    $ git init
+
+    // 将文件添加到暂存区
+    $ git add .
+
+    // 将文件提交到本地仓库
+    $ git commit -m "First commit"
+
+然后在 github 上新建一个仓库，仓库名设置为你的用户名前缀 : username.github.io，例如我的仓库名为：CherishLyf.github.io
+
+然后本地仓库与远程仓库关联
+
+    $ git remote add origin https://github.com/username/username.github.io.git
+    $ git push origin master
+
+现在，访问 username.github.io 就可以看到刚才的的博客了
+
+### 搭建本地环境
+
+搭建本地环境需要安装 Ruby，windows下安装，[Rubyinstaller](http://rubyinstaller.org/downloads/)。然后需要安装[RubyDevKit](http://rubyinstaller.org/downloads/)
+
+RubyDevKit安装： 
+文件下载下来之后，解压到文件夹，命令行进入该文件夹，输入指令：
+        
+    $ ruby dk.rb init
+
+最后执行安装：
+
+    $ ruby dk.rb install
+
+目前新版 Ruby 自带 gem，无需安装 gem，直接安装 Jekyll。由于墙的缘故，需要将 ruby 源替换成 taobao 的源
+
+    $ gem sources --remove https://rubygems.org/
+    $ gem sources -a https://ruby.taobao.org/
+    $ gem sources -l
+    *** CURRENT SOURCES ***
+
+    https://ruby.taobao.org
+    # 请确保只有 ruby.taobao.org
+    $ gem install rails
+
+接下来就可以安装 jekyll了：
+        
+    $ gem install jekyll
+
+jekyll 安装好后，想要在本地测试，输入指令：
+
+    $ jekyll server --watch
+
+这样就可以通过浏览器访问 [http://localhost:4000](http://localhost:4000) 查看我们刚刚写好的博客了
+
+终于有了自己的个人博客，以后就在这里写博客了，接下来把以前写的贴上来。
+
+再次感谢作者 [Hux](http://huangxuan.me/)
