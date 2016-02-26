@@ -3,8 +3,9 @@ layout:     post
 title:      "Gulp 简易入门及 API 介绍"
 subtitle:   " \"Gulp 学习笔记\""
 author:     "刘一凡"
-header-img: "img/post-bg-2015.jpg"
+header-img: "img/post-bg-gulp.jpg"
 tags:
+    - 前端开发
     - 前端工具
 ---
 
@@ -33,27 +34,27 @@ tags:
 
 webapp目录结构通常是这样的
 
-├── app/
+    └── src/
 
-│ └── css/
+        ├── less/    *.less 文件
 
-│ └── fonts/
+        ├── sass/    *.scss *.sass 文件
 
-│ └── images/
+        ├── css/     *.css  文件
 
-│ └── index.html
+        ├── js/      *.js 文件
 
-│ └── js/
+        ├── fonts/   字体文件
 
-│ └── scss/
+        └── images/   图片
 
-├── dist/
+    ├── dist/
 
-├── gulpfile.js
+    ├── gulpfile.js
 
-├── node_modules/
+    ├── node_modules/
 
-└── package.json
+    └── package.json
 
 ## Gulp API 介绍
 
@@ -139,6 +140,250 @@ gulp 还有另外一种用法：
         console.log(event.path);   // 变化文件的路径    
     })
 
+## 使用 Gulp 构建一个项目
+
+来自 [Gulp 入门指南](https://github.com/nimojs/gulp-book/blob/master/chapter7.md)
+
+### package.json
+
+首先在命令行输入
+
+    $ npm init
+
+依次补全项目信息，不清楚的直接跳过
+    
+    name: (gulp-demo) 
+    version: (1.0.0) 
+    description: 
+    entry point: (index.js) 
+    test command: 
+    ...
+    ...
+    Is this ok? (yes)
+
+最终在项目目录下生成 package.json 文件，并生成类似下面的代码：
+
+    {
+      "name": "gulp-demo",
+      "version": "0.0.0",
+      "description": "",
+      "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/nimojs/gulp-demo.git"
+      },
+      "keywords": [
+        "gulp",
+      ],
+      "author": "nimojs <nimo.jser@gmail.com>",
+      "license": "MIT",
+      "bugs": {
+        "url": "https://github.com/nimojs/gulp-demo/issues"
+      },
+      "homepage": "https://github.com/nimojs/gulp-demo"
+    }
+
+### 安装依赖
+
+安装 Gulp 到被本地项目
+
+    $ npm install gulp --save-dev
+
+接着安装其他依赖
+
+    $ npm install gulp-uglify gulp-watch-path stream-combiner2 gulp-sourcemaps gulp-minify-css gulp-autoprefixer gulp-less gulp-ruby-sass gulp-imagemin gulp-util --save-dev
+
+此时 package.json 将会更新
+    
+    "devDependencies": {
+        "colors": "^1.0.3",
+        "gulp": "^3.8.11",
+        "gulp-autoprefixer": "^2.1.0",
+        "gulp-imagemin": "^2.2.1",
+        "gulp-less": "^3.0.2",
+        "gulp-minify-css": "^1.0.0",
+        "gulp-ruby-sass": "^1.0.1",
+        "gulp-sourcemaps": "^1.5.1",
+        "gulp-uglify": "^1.1.0",
+        "gulp-watch-path": "^0.0.7",
+        "stream-combiner2": "^1.0.2"
+    }
+
+当你将这份 gulpfile.js 配置分享给你的朋友时，就不需要将 node_modules/ 发送给他，他只需在命令行输入
+
+    $ npm install 
+
+就可以检测 package.json 中的 devDependencies 并安装所有依赖
+
+我这里生成的 package.json 为
+
+    {
+      "name": "Project",
+      "version": "1.0.0",
+      "description": "This is a project for .....",
+      "main": "gulpfile.js",
+      "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+      },
+      "author": "",
+      "license": "ISC",
+      "devDependencies": {
+        "gulp": "^3.9.1",
+        "gulp-autoprefixer": "^3.1.0",
+        "gulp-imagemin": "^2.4.0",
+        "gulp-less": "^3.0.5",
+        "gulp-minify-css": "^1.2.3",
+        "gulp-ruby-sass": "^2.0.6",
+        "gulp-sourcemaps": "^1.6.0",
+        "gulp-uglify": "^1.5.2",
+        "gulp-util": "^3.0.7",
+        "gulp-watch-path": "^0.1.0",
+        "stream-combiner2": "^1.1.1"
+      }
+    }
+
+### gulpfile.js 
+
+这里贴上一个示例
+
+    var gulp = require('gulp')
+    var gutil = require('gulp-util')
+    var uglify = require('gulp-uglify')
+    var watchPath = require('gulp-watch-path')
+    var combiner = require('stream-combiner2')
+    var minifycss = require('gulp-minify-css')
+    var autoprefixer = require('gulp-autoprefixer')
+    var sass = require('gulp-ruby-sass')
+    var imagemin = require('gulp-imagemin')
+
+
+    var handleError = function (err) {
+        var colors = gutil.colors;
+        console.log('\n')
+        gutil.log(colors.red('Error!'))
+        gutil.log('fileName: ' + colors.red(err.fileName))
+        gutil.log('lineNumber: ' + colors.red(err.lineNumber))
+        gutil.log('message: ' + err.message)
+        gutil.log('plugin: ' + colors.yellow(err.plugin))
+    }
+
+    gulp.task('watchjs', function () {
+        gulp.watch('src/js/**/*.js', function (event) {
+            var paths = watchPath(event, 'src/', 'dist/')
+            /*
+            paths
+                { srcPath: 'src/js/log.js',
+                  srcDir: 'src/js/',
+                  distPath: 'dist/js/log.js',
+                  distDir: 'dist/js/',
+                  srcFilename: 'log.js',
+                  distFilename: 'log.js' }
+            */
+            gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
+            gutil.log('Dist ' + paths.distPath)
+
+            var combined = combiner.obj([
+                gulp.src(paths.srcPath),
+                uglify(),
+                gulp.dest(paths.distDir)
+            ])
+
+            combined.on('error', handleError)
+        })
+    })
+
+    gulp.task('uglifyjs', function () {
+        var combined = combiner.obj([
+            gulp.src('src/js/**/*.js'),
+            uglify(),
+            gulp.dest('dist/js/')
+        ])
+    })
+
+
+    gulp.task('watchcss', function () {
+        gulp.watch('src/css/**/*.css', function (event) {
+            var paths = watchPath(event, 'src/', 'dist/')
+
+            gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
+            gutil.log('Dist ' + paths.distPath)
+
+            gulp.src(paths.srcPath)
+                .pipe(autoprefixer({
+                  browsers: 'last 2 versions'
+                }))
+                .pipe(minifycss())
+                .pipe(gulp.dest(paths.distDir))
+        })
+    })
+
+    gulp.task('minifycss', function () {
+        gulp.src('src/css/**/*.css')
+            .pipe(autoprefixer({
+              browsers: 'last 2 versions'
+            }))
+            .pipe(minifycss())
+            .pipe(gulp.dest('dist/css/'))
+    })
+
+
+    gulp.task('watchsass',function () {
+        gulp.watch('src/sass/**/*', function (event) {
+            var paths = watchPath(event, 'src/sass/', 'dist/css/')
+
+            gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
+            gutil.log('Dist ' + paths.distPath)
+            sass(paths.srcPath)
+                .on('error', function (err) {
+                    console.error('Error!', err.message);
+                })
+                .pipe(minifycss())
+                .pipe(autoprefixer({
+                  browsers: 'last 2 versions'
+                }))
+                .pipe(gulp.dest(paths.distDir))
+        })
+    })
+
+    gulp.task('sasscss', function () {
+            sass('src/sass/')
+            .on('error', function (err) {
+                console.error('Error!', err.message);
+            })
+            .pipe(minifycss())
+            .pipe(autoprefixer({
+              browsers: 'last 2 versions'
+            }))
+            .pipe(gulp.dest('dist/css'))
+    })
+
+    gulp.task('watchimage', function () {
+        gulp.watch('src/images/**/*', function (event) {
+            var paths = watchPath(event,'src/','dist/')
+
+            gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
+            gutil.log('Dist ' + paths.distPath)
+
+            gulp.src(paths.srcPath)
+                .pipe(imagemin({
+                    progressive: true
+                }))
+                .pipe(gulp.dest(paths.distDir))
+        })
+    })
+
+    gulp.task('image', function () {
+        gulp.src('src/images/**/*.*')
+            .pipe(imagemin({
+                progressive: true
+            }))
+            .pipe(gulp.dest('dist/images'))
+    })
+
+
+    gulp.task('default', ['watchjs', 'watchcss', 'watchsass', 'watchimage'])
 
 
 

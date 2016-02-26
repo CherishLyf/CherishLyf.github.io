@@ -1,0 +1,132 @@
+---
+layout:     post
+title:      "插件编写的方式"
+subtitle:   " \"一种较好的插件编写方式\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - 前端开发
+---
+
+在慕课网看的一个编写全屏滚动插件的教程([地址](http://www.imooc.com/learn/374))，其中老师介绍了一种较好的编写插件的方式，以后可以作为模板了。
+
+    /*
+     * 这里首先创建了一个自执行的匿名函数
+     *  @ 避免全局污染
+     *  @ 避免第三方污染
+     *  @ 兼容 jQuery 操作符
+     */
+    
+    ;(function($){
+
+        // 这里定义插件的主体
+        var pluginName = (function(){
+            function pluginName(element, options){
+                // 合并参数
+                this.settings = $.extend({}, $.fn.pluginName.defaults, options || {});
+                this.element = element;
+            }
+
+            pluginName.prototype = {
+                init : function(){
+
+                }
+            }
+            
+            //  保证外部可以访问
+            return pluginName;
+        })();
+        
+        // 对象级别的插件开发
+        $.fn.pluginName = function(){
+
+            // 链式调用
+            return this.each(function(options){
+                var me = $(this),
+                      instance = $(this).data("pluginName"); 
+                // 这是使用的是 单例模式，保证实例化出的对象只有一个
+                if(!instance){
+                    instance = new pluginName(me, options);
+                    me.data("pluginName", instance);
+                }
+                
+                // 判断 options, 如果是字符串, 就调用方法
+                if($.type(options) === "string") return instance[options]();
+                /*
+                 *  比如这里可以在外部这样调用 插件的方法
+                 *  $("div").pluginName("init");
+                 */
+                
+            })
+        }
+
+        // 插件的默认参数
+        $.fn.pluginName.defaults = {
+            // .....
+        }
+
+    })(jQuery);
+
+插件的调用
+
+第一种方式可以在插件内部调用
+
+    ;(function($){
+
+        // 这里定义插件的主体
+        var pluginName = (function(){
+            function pluginName(element, options){
+                // 合并参数
+                this.settings = $.extend({}, $.fn.pluginName.defaults, options || {});
+                this.element = element;
+            }
+
+            pluginName.prototype = {
+                init : function(){
+
+                }
+            }
+            
+            //  保证外部可以访问
+            return pluginName;
+        })();
+        
+        // 对象级别的插件开发
+        $.fn.pluginName = function(){
+
+            // 链式调用
+            return this.each(function(options){
+                var me = $(this),
+                      instance = $(this).data("pluginName"); 
+                // 这是使用的是 单例模式，保证实例化出的对象只有一个
+                if(!instance){
+                    instance = new pluginName(me, options);
+                    me.data("pluginName", instance);
+                }
+                
+                // 判断 options, 如果是字符串, 就调用方法
+                if($.type(options) === "string") return instance[options]();
+                /*
+                 *  比如这里可以在外部这样调用 插件的方法
+                 *  $("div").pluginName("init");
+                 */
+                
+            })
+        }
+
+        // 插件的默认参数
+        $.fn.pluginName.defaults = {
+            // .....
+        }
+
+        // 在这里调用
+        $(function(){
+            $("[data-pluginName]").pluginName();
+        })
+
+    })(jQuery);
+
+另一种在 html 中调用插件
+
+    $("div").pluginName();
+    
