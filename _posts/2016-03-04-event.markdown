@@ -1,0 +1,356 @@
+---
+layout:     post
+title:      "JavaScript 事件 【上】"
+subtitle:   " \"觉得自己对 JS事件了解不够深，又重新阅读了一下高程中的事件\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - 前端开发
+---
+
+JavaScript 与 HTML 之间的交互是通过**事件**实现的。事件，就是文档或浏览器窗口中发生的一些特定的交互瞬间。可以使用**侦听器**来预订事件，以便事件发生时执行相应的代码。这也叫观察者模式。
+
+## 事件流
+
+"DOM2级事件" 规定事件包括三个阶段：`事件捕获`阶段，`处于目标`阶段，`事件冒泡`阶段
+
+`事件冒泡` 即事件开始时由最具体的元素(文档中嵌套层次最深的那个节点)接收，然后逐级向上到较为不具体的节点(文档)  <br />
+`事件捕获` 是由最不具体的节点到最具体的节点
+
+![1](/img/in-post/post-js-event/1.png)
+
+## 事件处理程序
+
+事件就是用户或浏览器自身执行的某种动作。例如`click`，`load`，`mouseover`等，都是事件的名字，而响应某个事件的函数叫**事件处理程序**(或侦听器)
+
+**DOM0级事件处理程序**
+
+---
+
+`DOM0级事件处理程序` 通过 JavaScript 指定事件处理程序的传统方式，就是将一个函数赋值给一个事件处理程序属性。
+
+比如：
+
+    var btn = document.getElementById("myBtn")
+    btn.onclick = function(){
+        alert(this.id)          // myBtn
+    }
+
+使用DOM0级方法指定的事件处理程序被认为是元素的方法，这时候事件的处理程序实在元素的作用域中运行的；换句话说，程序的`this`引用当前元素。
+
+也可以删除通过 `DOM0级方法` 指定的事件处理程序，只要将对应的值设为`null`即可
+    
+    btn.onclick = null      // 删除事件处理程序
+
+**DOM2级事件处理程序**
+
+---
+
+`DOM2级事件处理程序` 定义两个方法，用于处理指定和删除事件处理程序的操作：<br>
+`addEventListener()` 和 `removeEventListener()`。<br>
+他们都接受`3`个参数 : `要处理的事件名`、`作为事件处理程序的函数`、`一个布尔值`。<br>
+最后一个布尔值为`true`，表示在捕获阶段调用事件处理程序<br>
+如果为`false`，表示再冒泡阶段调用事件处理程序
+
+要在按钮为`click`事件添加事件处理程序：
+    
+    var btn = document.getElementById("myBtn")
+    btn.addEventListener("click", function(){
+        alert(this.id)
+    }, false)
+
+通过 `addEventListener()` 添加的事件处理程序只能通过 `removeEventListener()` 来移除，移除时出入的参数与添加处理程序时的参数相同，这意味着**通过** `addEventListener()` **添加的匿名函数无法被移除**，比如：
+
+    var btn = document.getElementById("myBtn")
+    btn.addEventListener("click", function(){
+        alert(this.id)
+    }, false)
+
+    //  .....
+    
+    btn.removeEventListener("click", function(){    // 没有用
+        alert(this.id)
+    }, false)
+
+上面例子中，`addEventListener()` 添加了一个事件处理程序，`removeEventListener()` 看似传递了相同的函数，实际是不一样的。必须传入相同的参数才有用。比如：
+
+    var btn = document.getElementById("myBtn")
+    var handler = function(){
+        alert(this.id)
+    }
+    btn.addEventListener("click", handler, false)
+
+    // ...
+    btn.removeEventListener("click", handler, false)
+
+大多数情况下，都是将事件处理函数添加到事件流的**冒泡阶段**，这样可以最大限度的兼容各种浏览器。
+
+**IE 事件处理程序**
+
+---
+
+`IE事件处理程序` IE实现了与DOM中类似的方法：<br>
+`attachEvent()` 和 `detachEvent()`<br>
+这两个方法接受两个参数：`事件处理程序名称`、`事件处理函数`。由于 IE8 及更早的版本只支持事件冒泡，所以用 `attachEvent()` 添加的事件处理程序都会被添加到冒泡阶段
+
+    var btn = document.getElementById("myBtn")
+    // 注意 第一个参数为 "onclick"
+    btn.attachEvent("onclick", function(){
+        alert("Clicked")
+    })
+
+在 IE 中使用 `attachEvent()` 与 使用 DOM0级 方法主要区别在作用域。<br>
+DOM0级中，事件处理程序会在其所属元素的作用域内运行<br>
+ `attachEvent()` 中，事件处理程序在全局中运行，`this` 相当于`window`
+
+    var btn = document.getElementById("myBtn")
+    btn.attachEvent("onclick", function(){
+        alert(this === window)      // true
+    })
+
+为同一个按钮添加不同的事件处理程序，与 DOM方法不同的是，这些事件处理程序不是按照添加他们的顺序执行，而是以**相反的顺序**执行
+
+    var btn = document.getElementById("myBtn")
+
+    btn.attachEvent("onclick", function(){
+        alert("Clicked")
+    })
+
+    btn.attachEvent("onclick", function(){
+        alert("Hello world !")
+    })
+
+    // 这里首先会看到 Hello world，然后才是 Clicked
+
+使用 `attachEvent()` 添加的事件处理程序可以通过 `detachEvent()` 来移除，必须提供相同的参数。
+
+    var btn = document.getElementById("myBtn")
+    var handler = function(){
+        alert("Clicked")
+    }
+    btn.attachEvent("onclick", handler)
+
+    // ...
+
+    btn.detachEvent("onclick", handler)
+
+**跨区域的事件处理程序**
+
+---
+
+第一个要创建的方法为 `addHandler()` 它的职责是视情况分别使用 DOM0级、DOM2级方法或者 IE 方法来添加事件。接受`3`个参数：`要操作的对象`、`事件名称`、`事件处理程序函数`<br>
+与之对应的是 `removeHandler()` 也接受相同的方法
+
+    var EventUtil = {
+        addHandler : function(element, type, handler){
+            if(element.addEventListener){
+                element.addEventListener(type, handler, false)
+            } else if (element.attachEvent){
+                element.attachEvent("on" + type, handler)
+            } else {
+                element["on" + type] = handler
+            }
+        },
+        removeHandler : function(element, type, handler){
+            if(element.removeEventListener){
+                element.removeEventListener(type, handler, false)
+            } else if (element.detachEvent){
+                element.detachEvent("on" + type, handler)
+            } else {
+                element["on" + type] = null
+            }
+        }
+    }
+
+可以像下面这样使用 `EventUtil` 对象
+    
+    var btn = document.getElementById("myBtn")
+    var handler = function(){
+        alert("Clicked")
+    }
+
+    EventUtil.addEventHandler(btn, "click", handler)
+
+    // ...
+
+    EventUtil.removeEventHandler(btn, "click", handler)
+
+## 事件对象
+
+在触发 DOM 上的某个事件，会产生一个事件对象`event`，这个对象包含所有与事件有关的信息。
+
+**DOM中的事件对象**
+
+--- 
+
+兼容DOM的浏览器会将一个 `event` 对象传入到事件处理程序中。
+
+    var btn = document.getElementById("myBtn")
+    btn.onclick = function(event){
+        alert(event.type)       // "click"
+    }
+    btn.addEventListener("click", function(){
+        alert(event.type)       // "click"
+    }, false)
+
+`event` 包含与创建它的特定事件有关的属性和方法
+
+`bubbles`<br />
+表明事件是否冒泡<br />
+`cancelable`<br />
+表明是否取消事件的默认行为<br />
+`currentTarget`<br />
+某事件处理程序当前正在处理的那个元素<br />
+`defaultPrevented`<br />
+为 true 表明已经调用了preventDefault（DOM3新增）
+`eventPhase`<br />
+调用事件处理程序的阶段：1 捕获；2 处于阶段；3 冒泡阶段<br />
+这个属性的变化需要在断点中查看，不然你看到的总是<0br></0br>
+`target`<br />
+事件目标<br />
+`trusted`<br />
+true表明是系统的，false为开发人员自定义的（DOM3新增）<br />
+`type`<br />
+事件类型<br />
+`view`<br />
+与事件关联的抽象视图，发生事件的window对象<br />
+`preventDefault`<br />
+取消事件默认行为，cancelable是true时可以使用<br />
+`stopPropagation`<br />
+取消事件捕获/冒泡，bubbles为true才能使用<br />
+`stopImmediatePropagation`<br />
+取消事件进一步冒泡，并且组织任何事件处理程序被调用（DOM3新增）<br />
+在我们的事件处理内部，this与currentTarget相同<br />
+`createEvent`<br />
+可以在document对象上使用createEvent创建一个event对象<br />
+
+在事件处理程序内部，对象 `this` 始终等于 `currentTarget` 的值，而 `target` 只包含事件的实际目标。如果直接将事件处理程序指定给了目标元素，则 `this`、`currentTarget`
+和 `target` 包含相同的值。
+
+    var btn = document.getElementById("myBtn")
+    btn.onclick = function(event){
+        alert(event.currentTarget === this)         // true
+        alert(event.target === this)        // true
+    }
+
+`preventDefault()` 方法用于组织特定事件的默认行为<br>
+`stopPropagation()` 方法用于立即停止事件在 DOM 层次中的传播，取消进一步的事件捕获/冒泡
+
+如果事件处理程序存在于按钮的父节点中（例如`document.body`），那么那些值不相同。
+
+    document.body.onclick = function(event){  
+        alert(event.currentTarget === document.body)        // true
+        alert(this === document.body)       // true
+        alert(event.target === document.getElementById("myBtn"))        // true
+    }
+
+**IE 中的事件对象**
+
+--- 
+
+与访问 DOM中的 `event` 对象不同，要访问IE中的 `event` 对象有几种不同的方式，取决于指定事件处理程序的方法。<br>
+在 `DOM0级 `方法添加事件对象处理程序时，`event` 对象作为 `window` 对象的一个属性存在。
+
+    var btn = document.getElementById("myBtn")
+    btn.onclick = function(){
+        var event = window.event
+        alert(event.type)       // "click"
+    }
+
+使用 `attachEvent()` 方法添加的事件处理程序，会有一个 `event` 对象作为参数被传入事件处理程序
+
+    var btn = document.getElementById("myBtn")
+    btn.attachEvent("onclick", function(event){
+        alert(event.type)       // "click"
+    })
+
+IE 中的 `event` 对象同样也包括与创建它的事件相关的属性和方法。
+
+`cancelBubble`<br>
+默认值为 `false`，将其设置为 `true` 可以取消冒泡<br>
+`returnValue`<br>
+默认值为 `true`，将其设置为 `false` 就可以取消事件的默认行为<br>
+`srcElement`<br>
+事件的目标<br>
+`type`<br>
+被触发事件的类型
+
+`returnValue` 属性相当于 DOM中的 `preventDefault()` 方法，取消给定事件的默认行为。只要将 `returnValue` 设置为 `false`，就可以阻止默认行为
+
+    var link = document.getElementById("myLink")
+    link.onclick = function(){
+        window.event.returnValue = false
+    }
+
+`cancelBubble` 属性与 DOM中的 `stopPropagation()` 方法相似，都是用来停止冒泡的。IE 不支持事件捕获，因而只能取消事件冒泡
+
+    var btn = document.getElementById("myBtn")
+    btn.onclick = function(){
+        alert("clicked")
+        window.event.cancelBubble = true
+    }
+
+**跨浏览器的事件对象**
+
+--- 
+
+可以对之前介绍的 `EventUtil` 对象加强，添加如下方法以求同存异
+
+    var EventUtil = {
+        addHandler : function(element, type, handler){
+            // 省略的代码
+        },
+        getEvent : function(event){
+            return event ? event : window.event
+        },
+        getTarget : function(event){
+            return event.target || event.srcElement
+        },
+        preventDefault : function(event){
+            if(event.preventDefault){
+                event.preventDefault()
+            } else {
+                event.returnValue = false
+            }
+        },
+        removeHandler : function(){
+            // 省略的代码
+        },
+        stopPropagation : function(event){
+            if(event.stopPropagation){
+                event.stopPropagation()
+            } else {
+                event.cancelBubble = true 
+            }
+        }
+    }
+
+以上代码添加了`4`个新方法，<br>
+第一个 `getEvent()`，获取事件对象
+
+    btn.onclick = function(event){
+        event = EventUtil.getEvent(event)
+    }
+
+第二个 `getTarget()`，返回事件目标
+
+    btn.onclick = function(event){
+        event = EventUtil.getEvent(event)
+        var target = EventUtil.getTarget(event)
+    }
+
+第三个 `preventDefault()`，用于取消事件的默认行为
+
+    var link = document.getElementById("myLink")
+    link.onclick = function(event){
+        event = EventUtil.getEvent(event)
+        EventUtil.preventDefault(event)
+    }
+
+第四个 `stopPropagation()`，组织事件流
+
+    btn.onclick = function(event){
+        alert("Clicked")
+        event = EventUtil.getEvent(event)
+        EventUtil.stopPropagation(event)
+    }

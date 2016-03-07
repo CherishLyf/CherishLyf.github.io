@@ -1,0 +1,78 @@
+---
+layout:     post
+title:      "JavaScript 事件 【下】"
+subtitle:   " \"觉得自己对 JS事件了解不够深，又重新阅读了一下高程中的事件\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - 前端开发
+---
+
+## 事件类型
+
+"DOM3级事件" 规定了以下几类事件：<br>
+`UI事件` 当用户与页面上元素交互时触发<br>
+`焦点事件` 当元素获得或者失去焦点时触发<br>
+`鼠标事件` 当元素通过鼠标在页面上执行操作时触发<br>
+`滚轮事件` 当使用鼠标滚轮时触发<br>
+`文本事件` 当在文档中输入文本时触发<br>
+`键盘事件` 当用户通过键盘在页面上操作时触发
+
+**UI 事件**
+
+---
+
+1. `load` 事件
+
+JavaScript 中最常用的一个事件就是 `load` 。当页面完全加载后，就会触发`window`上面的`load`事件。
+
+    EventUtil.addHandler(window, "load", function(event){
+        alert("loaded !")
+    })
+
+图片上面也可以触发 `load` 事件，无论是在 DOM 中的图像还是 HTML 中的图像元素。<br>
+在创建新的`<img>`元素时，可以指定一个事件处理程序，以便图片加载完毕后给出提示  
+
+    EventUtil.addHandler(window, "load", function(){
+        var image = new image()
+        EventUtil.addHandler(image, "load", function(event){
+            alert("Image loaded !")
+        })
+        image.src = "smile.gif"
+    })
+
+`<script>` 元素也会触发 `load` 事件，以便开发人员确定动态加载的 JavaScript 文件是否加载完毕
+
+    EventUtil.addHandler(window, "load", function(){
+        var script = document.createElement("script")
+        EventUtil.addHandler(script, "load", function(event){
+            alert("Loaded")
+        })
+        script.src = "example.js"
+        document.body.appendChild(script)
+    })
+
+2. `unload` 事件
+
+与 `load` 事件对应的是 `unload` 事件，这个事件在文档被完全卸载后触发。利用这个事件最多的情况就是清除引用，以避免内存泄露。
+
+3. `resize` 事件
+
+当浏览器窗口被调整到一个新的高度或宽度时，就会触发 `resize` 事件。这个事件在 `window` 上面触发，因此可以通过 `body` 元素中的 `onresize` 特性来指定特定的事件处理程序
+
+    EventUtil.addHandler(window, "resize", function(event){
+        alert("Resized")
+    })
+
+4. `scroll` 事件
+
+`scroll` 是在 `window` 对象上发生的，但它实际表示的是页面中相应元素的变化。
+
+    EventUtil.addHandler(window, "scroll", function(){
+        if(document.compatMode == "CSS1Compat"){
+            alert(document.documentElement.scrollTop);
+        } else {
+            alert(document.body.scrollTop)
+        }
+    })
+
