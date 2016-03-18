@@ -1,0 +1,21 @@
+---
+layout:     post
+title:      "今天且有暂别, 他朝也定能聚首"
+subtitle:   " "
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - 生活
+---
+
+`今天且有暂别`<br />
+`他朝也定能聚首`<br />
+`纵使不能会面`<br />
+`始终也是朋友`<br />
+`说有万里山`<br />
+`隔阻两地遥`<br />
+`不需见面`<br />
+`心中也知晓`<br />
+`友谊改不了`
+
+![all](/img/in-post/post-life/all.jpg)
