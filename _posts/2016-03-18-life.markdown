@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "今天且有暂别, 他朝也定能聚首"
+title:      "今天且有暂别, 他朝定能聚首"
 subtitle:   " "
 author:     "刘一凡"
 header-img: "img/post-bg-2015.jpg"
