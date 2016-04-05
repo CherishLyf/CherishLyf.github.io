@@ -230,7 +230,7 @@ JS能够处理的最大精确整数
 
 ### each(forEach)
 
-`_.each(list, literator, context)` 别名 `forEach` <br>
+`_.each(list, literator, [context])` 别名 `forEach` <br>
 对一个 `list` 的所有元素进行迭代，对每一个元素执行 `iterator` 函数。`iterator` 和 `context` 对象绑定，如果传了这个参数。<br>
 每次 `iterator` 的调用将会带有三个参数：`(element, index, list)`。<br>
 如果 `list` 是一个 `JavaScript` 对象，`iterato`r 的参数将会是 `(value, key, list)`。如果有原生的 `forEach` 函数就会用原生的代替。
@@ -283,7 +283,7 @@ JS能够处理的最大精确整数
 
 ### map(collect)
 
-`_.map(list, literator, context)` 别名 `collect` <br>
+`_.map(list, literator, [context])` 别名 `collect` <br>
 对 `list` 中每个元素运行 `literator` 函数, 并返回执行过后的新生成的数组 <br>
 与 `each` 方法一样, 每次 `iterator` 的调用将会带有三个参数：`(element, index, list)`
 
@@ -321,7 +321,7 @@ JS能够处理的最大精确整数
 
     => 当前月薪为 1200
 
-## reduce, reduceRight
+### reduce, reduceRight
 
 `_.reduce(list, iteratee, [memo], [context])` 别名 `inject, foldl` <br>
 `reduce` 方法把 `list` 中元素归结为一个单独的数值 <br>
@@ -379,6 +379,196 @@ JS能够处理的最大精确整数
 
     => [4, 5, 2, 3, 0, 1]
 
+### find
+
+`_.find(list, predicate, [context])` 别名: `detect`  <br> 
+遍历 `list`, 返回第一个通过 `predicate` 函数的**元素值**, 没有通过返回 `undefined` <br>
+如果找到符合判断的值, 立即返回, 不会遍历整个 `list` <br>
+`predicate` 函数包含 `3` 个属性, `value`, `index`, `list`
+
+这里用到了几个方法    <br>
+[createIndexFinder()](#createIndexFinder)  <br>
+[_.findIndex()](#findIndex) 
+
+    _.find = _.detect = function(obj, predicate, context){
+      var key;
+      if (isArrayLike(obj)) {
+        key = _.findIndex(obj, predicate, context);
+      } else {
+        key = _.findKey(obj, predicate, context);
+      }
+      if (key !== void 0 && key !== -1) return obj[key];
+    };
+
+**示例**
+
+    var a = [1, 2, 3, 4];
+    var b = _.find(a, function(num){
+      return num % 2 == 0
+    })
+    console.log(b)
+
+    => 2
+
+### filter
+
+`_.filter(list, predicate, [context])` 别名 `select`  <br>
+遍历 `list` 的每个值, 返回一个包含所有通过 `predicate` 函数的元素值的集合    <br>
+`predicate` 函数包含 `3` 个属性, `value`, `index`, `list`
+
+    _.filter = _.select = function(obj, predicate, context){
+      var results = [];
+      predicate = cb(predicate, context);
+      _.each(obj, function(value, index, list){
+        if(predicate(value, index, list)) results.push(value)
+      })
+
+      return results;
+    }
+
+**示例**
+
+    var a = [1, 2, 3, 4];
+    var b = _.filter(a, function(num){
+      return num % 2 == 0
+    })
+    console.log(b)
+
+    => [2, 4]
+
+### reject
+
+`_.reject(list, predicate, [context])`  <br>
+返回 `list` 中没有通过 `predicate` 函数检测的元素集合, 与 `filter` 相反
+
+    _.reject = function(obj, predicate, context){
+      return _.filter(obj, _.negate(cb(predicate)), context)
+    }
+
+**示例**
+
+    var a = [1, 2, 3, 4];
+    var b = _.reject(a, function(num){
+      return num % 2 == 0
+    })
+    console.log(b)
+
+    => [1, 3]
+
+### compose 
+
+`_.compose(*functions)` <br>
+返回函数集 `functions` 组合后的复合函数, 也就是一个函数执行完再把函数执行结果作为参数传递给下个函数执行
+
+    _.compose = function(){
+      var args = arguments;
+      // 最后一个参数的 index 值
+      var start = args.length - 1;
+      return function(){
+        var i = start;  
+        var result = args[start].apply(this, arguments)
+        while (i--) result = args[i].call(this, result)
+        return result;
+      }
+
+**示例**
+
+    var personName = function(name){
+      return name;
+    };
+    var personal = function(str){
+      return "我叫" + str + "!";
+    }
+    var introduction = _.compose(personal, personName);
+    console.log(introduction("刘一凡"))
+
+    => 我叫刘一凡!
+
+### after
+
+`_.after(count, function)` <br>
+创建一个函数, 运行 `count` 次后, 触发 `function`
+
+    _.after = function(times, func){
+      return function(){
+         if(--times < 1){
+           return func.apply(this, arguments)
+         }
+      }
+    }
+
+**示例**
+
+    function a(){
+      console.log("a")
+    }
+
+    var ConsoleA = _.after(3, a);
+
+    ConsoleA();  // 没触发 a()
+    ConsoleA();  // 没触发 a()
+    ConsoleA();  // 触发 a(), 输出 a
+
+### before
+
+`_.before(count, function)` <br>
+创建一个函数, 调用 `function` 不超过 `count` 次, 第 `count` 次返回, 不执行 `function`
+
+    _.before = function(times, func){
+      var memo ;
+      return function(){
+        if(--times > 0){
+          memo = func.call(this, arguments)
+        }
+        if(times <= 1) func = null;
+
+        return memo;
+      }
+    }
+
+**示例**
+
+    function a(){
+      console.log("a")
+    }
+
+    var ConsoleA = _.before(3, a);
+
+    ConsoleA();  // 触发 a()
+    ConsoleA();  // 触发 a()
+    ConsoleA();  // 没触发 a()
+
+## 数组方法
+
+--- 
+
+<div id="createIndexFinder"></div>
+
+### 获取 Index 方法
+
+创建一个可以从左、从右获取 `index` 值的方法
+
+    function createIndexFinder(dir){
+      return function(array, predicate, context){
+        predicate = cb(predicate, context);
+        var length = array != null && array.length;
+        var index = dir > 0 ? 0 length - 1;
+        for(;index >=0 && index < length; index += dir){
+          // 获取符合条件的 key, 返回 index
+          if(predicate(array[index], index, array)) return index;
+        }
+
+        return -1;
+      }
+    }
+
+<div id="findIndex"></div>
+    
+    // 从左开始
+    _.findIndex = createIndexFinder(1);
+
+    // 从右开始
+    _.findLastIndex = createIndexFinder(-1);
 
 ## 对象方法
 
@@ -447,7 +637,23 @@ JS能够处理的最大精确整数
       return obj != null && hasOwnProperty.call(obj, key)
     }
 
+## 函数方法
+
+---
+
+### negate
+
+ 返回一个新的 `predicate` 函数的否定版本
+
+    _.negate = function(predicate){
+      return function(){
+        return !predicate.apply(this, arguments)
+      }
+    }
+
 ## 公用函数
+
+### identity
 
 返回本身
 
