@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "Backbone 学习笔记 01"
-subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架""
+subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架\""
 author:     "刘一凡"
 header-img: "img/post-bg-2015.jpg"
 tags:
