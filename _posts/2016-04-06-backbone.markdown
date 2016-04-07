@@ -1,0 +1,87 @@
+---
+layout:     post
+title:      "Backbone 学习笔记 01"
+subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - backbone
+---
+
+## 初识 Backbone
+
+---
+
+### 简介
+
+[中文API](http://www.css88.com/doc/backbone/)
+
+Backbone 是一个轻量级的库, 压缩后只有 16kb, 体积虽小, 但功能十分强大, 可以打造一个 模型(Model) - 视图(View) -  控制器(Controller) 即 MVC类结构的应用程序。
+
+Model 是指数据, 比如一个人; <br>
+Collection 是指数据的集合, 比如一群人 <br>
+View 是 Model 和 Collection 中数据的展示, 比如也数据渲染到页面 <br>
+Router 是对路由的处理, 在单页面中通过 Router 来控制 View 的展示
+
+### 依赖
+
+Backbone.js 强制依赖 Underscore.js 这个库,  非强制依赖 jQuery, Zepto 等第三方库
+
+    <script src="jQuery.js"></script>
+    <script src="underscore.js"></script>
+    <script src="backbone.js"></script>
+
+### 第一个 Backbone 应用页面
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>第一个 Backbone 页面应用</title>
+    </head>
+    <body>
+    <div id="divTip"></div>
+    <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+    <script>
+    $(function(){
+      // 定义模型类
+      window.Test = Backbone.Model.extend({
+        defaults : {
+          content : ""
+        }
+      })
+
+      // 创建集合类
+      window.TestList = Backbone.Collection.extend({
+        model : Test
+      })
+
+      // 向模型添加数据
+      var data = new TestList({
+        content : "Hello, Backbone!"
+      })
+
+      // 创建 View
+      window.TestView = Backbone.View.extend({
+        el : $("body"),
+        initialize : function(){
+          $("#divTip").html(data.models[0].get("content"))
+        }
+      })
+
+      // 实例化 View
+      window.app = new TestView
+    })
+
+    </script>
+    </body>
+    </html>
+
+## 依赖库 Underscore.js
+
+Underscore.js 是一个非常简洁的, 实用的库, 包含了 60 多个独立的函数, 这些函数可以在不拓展任何原生 JavaScript 对象的情况下, 为代码开发提供丰富的实用功能.
+
+这里就不做过多详细的介绍了, [中文API](http://www.css88.com/doc/underscore/) <br>
+我写过一个关于 Underscore的博客, [Underscore 源码阅读](http://cherishlyf.github.io/2016/03/26/underscore/)
