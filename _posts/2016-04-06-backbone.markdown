@@ -33,6 +33,8 @@ Backbone.js 强制依赖 Underscore.js 这个库,  非强制依赖 jQuery, Zepto
 
 ### 第一个 Backbone 应用页面
 
+[预览效果](http://jsbin.com/wawadapawi/edit?output)
+
     <!doctype html>
     <html lang="en">
     <head>
@@ -85,3 +87,178 @@ Underscore.js 是一个非常简洁的, 实用的库, 包含了 60 多个独立�
 
 这里就不做过多详细的介绍了, [中文API](http://www.css88.com/doc/underscore/) <br>
 我写过一个关于 Underscore的博客, [Underscore 源码阅读](http://cherishlyf.github.io/2016/03/26/underscore/)
+
+## 事件管理
+
+事件管理模块 Backbone.Events 在 Backbone 中十分重要,  其他模块 Model、Collection、View 所有事件模块都依赖它。
+
+### Backbone.Events 模块 API 结构
+
+模块 Backbone.Events 的事件管理是通过 Backbone 提供的 Events API 来实现的。<br>
+1.0版本之前仅仅提供了几个基本的方法, 如 `on`、`off`、`trigger`、`once` 分别执行对事件的绑定、解除绑定、执行事件、执行一次事件。<br>
+1.0版本之后又添加了几个实用方法, 如 `listenTo`、`listenToOnce`、`stopListening` 分别执行添加一个事件的侦听对象、添加一个仅执行一次的事件侦听对象和移除已添加的事件侦听对象。
+
+### 基本事件方法
+
+#### 绑定 on 方法
+
+使用 `on` 方法可以给一个对象自定义事件绑定触发该事件的执行函数, 当自定义事件触发时, 绑定的函数将运行
+
+    Obj.on(eventName, function, [context])
+
+参数 `Obj` 表示对象本身; `eventName` 表示自定义事件名; `function` 表示当事件触发时, 被执行的函数; 可选参数 `context` 表示上下文环境
+
+**示例一 : 使用 on 方法监听默认事件**
+
+1.功能描述 
+
+构建一个名为 `person` 的模型类, 通过 `defaults` 设置对象的默认属性, 使用 `on` 方法 绑定对象默认属性的 `change` 事件
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : ""
+        }
+    });
+
+    var man = new person();
+    man.on("change", function(){
+        console.log("对象的属性值发生了改变")
+    })
+    man.set("name", "Lyf");
+
+    => 输出 对象的属性值发生了改变
+
+**示例二 : 使用 on 方法监听属性事件**
+
+使用 on 方法监听对象的 `change` 事件时, 还可以监听到某个属性值的变化事件, 即属性事件。
+
+    Obj.on(eventName:attrName, function(model, value))
+
+参数 `eventName:attrName` 表示对象的属性名称; 冒号(:) 是过滤符, 表示它是一个只针对某属性变化时触发的事件; <br>
+在触发的回调中, 参数 `model`, 表示当前的数据模型对象, `value` 表示名为 `attrName` 属性修改后的值
+
+1.功能描述 
+
+在示例一的基础上, 使用 `on` 方法绑定对象中是 `sex` 属性的 `change` 事件, 当 `sex` 属性值发生改变时, 触发该事件, 并在控制台输出最新值.
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "女"
+        }
+    });
+
+    var man = new person();
+    man.on("change", function(){
+        console.log("对象的属性值发生了改变")
+    })
+    man.on("change:sex", function(model, value){
+      console.log("您修改了性别属性值, 最新值是 : " + value)
+    })
+    man.set("sex", "男")
+
+    => 您修改了性别属性值, 最新值是 : 男
+    => 对象的属性值发生了改变
+
+注意 : 当修改对象属性值的时候, 其事件的触发顺序是 : 先触发属性事件, 然后才触发默认的 `change` 事件
+
+**示例三 : 使用 on 方法获取属性修改前的值**
+
+使用 on 方法监听对象的 `change` 事件和 `change` 属性事件时, 还可以通过回调函数中的 `model` 对象获取属性修改前的值 : 
+
+    model.previous("attrName")
+    model.previousAttributes()
+
+`previous()` 方法是获取对象中某个属性的原有值, `previousAttribute()` 方法返回一个对象, 对象中包含上一个保存状态中的所有属性的原有值。这个方法只用于模型对象的 `change` 和 `change` 属性事件中获取上一个保存状态的属性值。
+
+1.功能描述 
+
+分别绑定"分数"、"年龄"、属性的 `change` 事件。在事件中, 分别将属性重置前后的值进行对比, 并根据对比值在不同的浏览器的控制台中输出不同的内容.
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "女",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    man.on("change:score", function(model, value){
+        var oldscore = model.previous("score")
+        if(value > oldscore){
+          console.log("您比上次进步了" + (value - oldscore) + "分")
+        } else if(value < oldscore){
+          console.log("您比上次落后了" + (oldscore - value) + "分")
+        } else {
+          console.log("您的成绩没有变化")
+        }
+    })
+    man.on("change:age", function(model, value){
+      var objAttr = model.previousAttributes();
+      var oldAge = objAttr.age;
+      if(value > oldAge){
+        console.log("您又年长了" + (value - oldAge) + "岁")
+      } else if(value < oldAge) {
+        console.log("您又年轻了" + (oldAge - value) + "岁")
+      } else {
+        console.log("您的年龄没有变化")
+      }
+    })
+    man.set({"age" : 35, "score" : 150})
+
+    => 您又年长了3岁
+    => 您比上次进步了30分
+
+**示例四 : 使用 on 方法绑定多个事件**
+
+在 Backbone 中, 除了使用 `on` 绑定单个事件, 还可以使用该方法同时绑定多个对象的事件. <br>
+绑定的方法有两种, 第一种语法如下 :  
+
+    Obj.on(eventName1 eventName2, function)
+
+使用空格隔开的参数 `eventName1` 和 `eventName2` 表示被绑定的多个事件的名称, `function` 表示所有被绑定的事件都要执行的自定义函数
+
+1.功能描述 
+
+使用模型对象的 `on` 方法, 同时绑定 score、age 属性的 `change` 事件, 在该事件中, 分别获取重置时的原值和重置后的新值
+
+2.实现代码
+
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "女",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    man.on("change:score change:age", function(model, value){
+      var oldage = model.previous("age")
+      var newage = model.get("age")
+      if(oldage != newage){
+        console.log("age 原值为 : " + oldage + ", 新值 : " + newage)
+      }
+      var oldscore = model.previous("score")
+      var newscore = model.get("score")
+      if(oldscore != newscore){
+        console.log("score 原值为 : " + oldscore + ", 新值 : " + newscore)
+      }
+    })
+
+    man.set("age", 36)
+    man.set("score", 150)
+    
+    => age 原值为 : 32, 新值 : 36
+    => score 原值为 : 120, 新值 : 150
