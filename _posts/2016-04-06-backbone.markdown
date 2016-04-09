@@ -233,7 +233,6 @@ Underscore.js 是一个非常简洁的, 实用的库, 包含了 60 多个独立�
 
 2.实现代码
 
-
     var person = Backbone.Model.extend({
         defaults : {
             name : "",
@@ -245,20 +244,148 @@ Underscore.js 是一个非常简洁的, 实用的库, 包含了 60 多个独立�
 
     var man = new person();
     man.on("change:score change:age", function(model, value){
-      var oldage = model.previous("age")
-      var newage = model.get("age")
+      var oldage = model.previous("age");
+      var newage = model.get("age");
       if(oldage != newage){
         console.log("age 原值为 : " + oldage + ", 新值 : " + newage)
       }
-      var oldscore = model.previous("score")
-      var newscore = model.get("score")
+      var oldscore = model.previous("score");
+      var newscore = model.get("score");
       if(oldscore != newscore){
         console.log("score 原值为 : " + oldscore + ", 新值 : " + newscore)
       }
-    })
+    });
 
-    man.set("age", 36)
-    man.set("score", 150)
+    man.set("age", 36);
+    man.set("score", 150);
     
     => age 原值为 : 32, 新值 : 36
     => score 原值为 : 120, 新值 : 150
+
+在使用 `on` 方法绑定事件中, 有两种格式可以绑定多个事件, 除了第一种使用空格外, 第二种方式为使用对象方式绑定多个事件 : 
+
+    var ObjEvent = {
+        eventName1 : function1,
+        eventName2 : function2,
+        ...
+    }
+
+    Obj.on(ObjEvent)
+
+实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "女",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    var objEvent = {
+        "change:score" : score_change,
+        "change:age" : age_change
+    }
+    man.on(objEvent);
+
+    function score_change(model, value){
+        var oldscore = model.previous("score");
+        var newscore = model.get("score");
+        if(oldscore != newscore){
+          console.log("score 原值为 : " + oldscore + ", 新值 : " + newscore)
+        }
+    }
+
+    function age_change(model, value){
+        var oldage = model.previous("age");
+        var newage = model.get("age");
+        if(oldage != newage){
+          console.log("age 原值为 : " + oldage + ", 新值 : " + newage)
+        }
+    }
+
+    man.set({"age" : 35, "score" : 150})
+
+    => age 原值为 : 32, 新值 : 35
+    => score 原值为 : 120, 新值 : 150
+
+#### 绑定一次 once 方法
+
+`once` 方法绑定的事件只执行一次, 之后即使触发也不执行。调用格式如下 : 
+
+    Obj.once(eventName, function, [context])
+
+**示例五 : 使用 once 方法绑定事件**
+
+1.功能描述
+
+先使用模型对象的 `once` 方法绑定 `change` 事件, 在该事件中通过变量累计事件执行的次数, 并将该次数内容输出至浏览器的控制台中, 然后用 `set` 方法重置二次模型对象的属性.
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "男",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    var initNum = 0;
+    man.once("change", function(){
+      initNum++;
+      console.log("事件触发的次数为" + initNum)
+    });
+    man.set("age", 26);
+    man.set("score", 150);
+
+    => 事件触发的次数为1
+
+#### 触发事件 trigger 方法
+
+前面介绍了 `on` 或者 `once` 方法绑定对象事件的过程, 这些事件都是对象本身自带的系统事件, 如 `change`、`change:age` 等, 他们的触发需要满足相应的条件. <br>
+`trigger` 的功能是触发对象的某个事件 : 
+
+    Obj.trigger(eventName)
+
+其中 `Obj` 为对象本身, `eventName` 表示自定义的事件名, 需要手动触发的事件名。<br>
+`trigger` 可以手动触发对象的任何事件, 不仅是系统自带的事件, 还可以是自定义的事件。
+
+**示例六 : 使用 trigger 方法触发事件**
+
+1.功能描述
+
+先使用 `on` 方法绑定模型对象的自定义事件 `change_age_sex` 和 `age` 属性的 `change` 事件,
+然后分别调用 `trigger` 方法手动触发绑定的事件.
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "男",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    man.on("change_age_sex", function(){
+      console.log("您手动触发了一个自定义事件")
+    })
+    man.on("change:age", function(model, value){
+      if(value !== undefined)
+        console.log("您修改后的年龄为" + value)
+      else
+        console.log("您手动触发了一个年龄修改事件")
+    })
+    man.trigger("change_age_sex");
+    man.trigger("change:age");
+    man.set("age", 26);
+
+    => 您手动触发了一个自定义事件
+    => 您手动触发了一个年龄修改事件
+    => 您修改后的年龄为26
+
