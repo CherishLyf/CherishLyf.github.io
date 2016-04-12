@@ -515,3 +515,174 @@ Underscore.js 是一个非常简洁的, 实用的库, 包含了 60 多个独立�
 也等价于
 
     model.on("change", view.render, view)
+
+其调用格式为
+
+    Obj1.listenTo(Obj2, eventName, function)
+
+其中 `Obj1`、`Obj2` 都是对象, `eventName` 为 `Obj2` 对象的触发事件名称, `function` 为当 `Obj2` 触发事件时调用的函数。
+
+**示例十 : 使用 listenTo 方法监听事件**
+
+1.功能描述
+
+先调用 `listenTo` 方法绑定模型对象 `age` 属性的 `change` 事件。然后调用 `set` 方法重置对象的 `age` 属性, 在浏览器中输出变化时的原值与新值。
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "男",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    var obj = _.extend({}, Backbone.Events);
+    obj.listenTo(man, "change:age", function(model, value){
+      var oldage = model.previous("age");
+      var newage = model.get("age");
+      if(oldage != newage){
+        console.log("age 原值" + oldage + ", 新值 : " + newage)
+      }
+    });
+    man.set("age", 37);
+
+    => age 原值32, 新值 : 37
+
+#### 监听一次 listenToOnce 方法
+
+除了使用 `listenTo` 方法可以进行对象级别监听外, 还可以使用 `listenToOnce` 方法进行对象级别的事件监听。
+
+    Obj1.listenToOnce(Obj2, EventName, function)
+
+**示例十一 : 使用 listenToOnce 方法监听事件**
+
+1.功能描述
+
+先使用 `listenToOnce` 方法绑定对象 `age` 属性的 `change` 事件, 在事件中累计事件执行的次数, 并将次数输出。
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "男",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    var obj = _.extend({}, Backbone.Events);
+    var initNum = 0;
+    obj.listenToOnce(man, "change:age", function(){
+      initNum++;
+      console.log("事件触发的次数为:" + initNum);
+    });
+    man.set("age", 37);
+    man.set("age", 38);
+
+    => 事件触发的次数为:1
+
+#### 停止监听 stopListening 方法
+
+与单个对象的 `off` 方法相同, 对象级别的事件监听也有停止方法即 `stopListening` 方法 : 
+
+    Obj1.stopListening(Obj2, eventName, function)
+
+**示例十二 : 使用 stopListening 方法停止监听事件**
+
+1.功能描述
+
+先使用 `listenTo` 方法绑定对象 `age` 属性的 `change` 事件, 然后分别调用 `stopListening` 方法停止事件的监听。
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "男",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    var obj = _.extend({}, Backbone.Events);
+    obj.listenTo(man, "change:name", function(model, value){
+      console.log("姓名修改后的值为:" + value);
+    });
+    obj.listenTo(man, "change:age", function(model, value){
+      console.log("年龄修改后的值为:" + value);
+    });
+    obj.listenTo(man, "change:score", function(model, value){
+      console.log("分数修改后的值为:" + value);
+    });
+    // 停止监听某一事件
+    obj.stopListening(man, "change:name");
+    man.set("name", "张三");
+    man.set("age", 25);
+    man.set("score", 150);
+    // 停止监听两个事件
+    obj.stopListening(man, "change:name change:age");
+    man.set("name", "李四");
+    man.set("age", 35);
+    man.set("score", 250);
+    // 停止所有事件
+    obj.stopListening();
+    man.set("name", "赵六");
+    man.set("age", 45);
+    man.set("score", 350);
+
+    => 年龄修改后的值为:25
+    => 分数修改后的值为:150
+    => 分数修改后的值为:250
+
+### 事件其他
+
+#### 特殊事件 all 的使用
+
+`all` 是一个特殊的事件, 因为该事件在对象的任何事件被触发时, 它都会触发, 可以说是一个全局事件。它可以用 `trigger` 触发; 在触发该事件时, 还可以在回调的函数中通过 `value` 参数获取当前正在触发的事件名称。
+
+    Obj.on("all", function)
+
+**示例十三 : all 事件使用**
+
+1.功能描述
+
+首先使用 `on` 方法绑定对象 `name`、`age` 属性的 `change` 事件和特殊事件 `all`, 然后在浏览器中输出
+
+2.实现代码
+
+    var person = Backbone.Model.extend({
+        defaults : {
+            name : "",
+            sex : "男",
+            age : 32,
+            score : 120
+        }
+    });
+
+    var man = new person();
+    man.on("change:age", function(){
+      console.log("您触发了change:age事件");
+    });
+    var event_fun = function(){
+      console.log("您触发了change:name事件");
+    }
+    man.on("change:name", event_fun);
+    man.on("all", function(value){
+      console.log("您触发了all事件中" + value);
+    });
+    man.set("name", "Lyf");
+    man.set("age", 20);
+
+    => 您触发了change:name事件
+    => 您触发了all事件中change:name
+    => 您触发了all事件中change
+    => 您触发了change:age事件
+    => 您触发了all事件中change:age
+    => 您触发了all事件中change
