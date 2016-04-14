@@ -1,0 +1,231 @@
+---
+layout:     post
+title:      "Backbone 学习笔记 02"
+subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - backbone
+---
+
+# Backbone 学习笔记 02
+
+---
+
+## 数据模型
+
+---
+
+Model 在 Backbone 中为数据模型, 是一个最基础、最根本的数据基类, 用于原始数据、底层方法的封装和定义。
+
+### 创建数据模型
+
+在 Backbone 中, 创建数据模型的方法十分简单, 只要通过 `Model.extend()` 就可以定义一个数据模型。它在定义过程中, 还可以初始化数据、定义构造方法, 当一个数据模型创建成功后, 可以通过实例化的方法, 产生一个个数据对象。这些数据都继承了数据模型中的初始化数据, 并能够方便的调用。
+
+#### 创建一个简单的模型对象
+
+当使用 `Model.extend()` 方法构建数据模型之后, 就可以通过实例化方式创建一个模型的对象, 模型对象将自动继承模型中定义的属性和方法。
+
+**示例一 : 创建一个简单的模型对象**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        initNum++;
+        console.log("您构建了" + initNum + "个对象");
+      }
+    });
+    var initNum = 0;
+    var student1 = new student();
+    var student2 = new student();
+
+    => 您构建了1个对象
+    => 您构建了2个对象
+
+#### 对象赋值的方法
+
+对于一个数据模型, 赋值的方法在定义时通过 `defaults` 属性设置数据模型的默认值, 对于一个已经实例化的模型对象, 赋值的方法为 `set` 方法, 重置模型的默认值。`set` 方法有两种形式 : 
+
+第一种是单个设置 : 
+
+    Obj.set(attrName, attrValue)
+
+第二种为批量设置属性值
+
+    Obj.set({attrName1 : attrValue1, attrName2 : attrValue2, ....})
+
+无论使用 `set` 方法的何种形式赋值, 当完成对象赋值操作之后, 就可以通过调用对象的 `get` 或 `escape` 方法获取已设置的对象属性值。调用格式如下 :
+
+    Obj.get(attrName)
+    Obj.escape(attrName)
+
+**示例二 : 对象模型赋值的方法**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 执行构造代码
+      },
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10001",
+      Name : "张三",
+      Score : "120",
+      Class : "一年级"
+    });
+    console.log(student1.get("Name") + "在" + student1.get("Class") + "读小学");
+
+    => 张三在一年级读小学
+
+#### 自定义模型中的方法
+
+在构建对象模型时, 不仅可以设置模型对象的默认属性, 而且还可以自定义模型对象的方法, 在方法中 `this` 表示模型本身。
+
+**示例三 : 自定义方法**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 执行构造代码
+      },
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      },
+      printLog : function(){
+        console.log(this.get("Name") + "在" + this.get("Class") + "读小学");
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10001",
+      Name : "张三",
+      Score : "120",
+      Class : "一年级"
+    });
+    student1.printLog();
+
+    => 张三在一年级读小学
+
+#### 监听对象属性值变化
+
+在构建数据模型时, 使用 `on` 方法去绑定对象的属性事件, 监听属性值的变化, 通常放在数据模型构造函数 `initialize`。
+
+**示例四 : 监听 Name 属性值的变化**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        this.on("change:Name", function(){
+          var oldName = this.previous("Name");
+          var newname = this.get("Name");
+          if(oldName != newname){
+            console.log("Name 原值 : " + oldName + ", 新值 : " + newname);
+          }
+        })
+      },
+      defaults : {
+        Code : "",
+        Name : "name",
+        Score : ""
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10001",
+      Name : "张三",
+      Score : "120",
+      Class : "一年级"
+    });
+
+    => Name 原值 : name, 新值 : 张三
+
+### 模型对象操作
+
+创建一个数据模型类后, 接下来的任务就是针对模型对象实例化对象, 并对实例化后的对象进行一系列的数据操作。
+
+#### 读取数据
+
+如果要读取一个模型对象中的数据, 通常调用对象的 `get` 和 `escape` 方法, 前者是直接返回对象的数据, 后者是返回经过对对象中某些特殊字符进行编码的数据。
+
+**示例五 : 调用 get 方法获取对象指定的属性值**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var student1 = new student({
+      Name : "张三"
+    });
+    console.log(student1.get("Name"))
+
+    => 张三
+
+#### 修改数据
+
+完成一个数据模型的构建之后, 就可以通过实例化的对象修改模型类中的默认属性值。常用的有两种方法 : 一种是在实例化的时候修改默认属性; 一种是调用对象的 `set` 方法针对一个或者多个属性进行重置。
+
+**示例六 : 调用 set 方法批量修改重置默认值**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var student1 = new student({
+      Code : "10001",
+      Name : "张三",
+      Score : 150
+    });
+    var student2 = new student();
+    student2.set({
+      Code : "10002",
+      Name : "李四",
+      Score : 150
+    });
+
+#### 开启数据验证
+
+Backbone 提供了一套完整的数据验证机制, 用于确保写入数据模型的正确性。<br>
+要实现数据的验证, 需要以下3个步骤 : 
+
+1.添加 `validate` 方法, 在该方法中提供数据的校验, 即数据在什么情况下, 认为它是不正确的, 如果不正确返回提示信息。<br>
+2.绑定对象的 `invalid` 方法, 数据验证失败后会触发该事件, 在该事件中, 通过返回的参数可以接收 `validate` 方法中传递的提示信息。<br>
+3.使用 `set` 方法添加/修改属性时, 必须将 `validate` 属性值设置为 `true`, 用于通知 Backbone 框架此次数据操作时需要验证的。
+
+**示例七 : 开启数据验证**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        this.on("invalid", function(model, error){
+          console.log(error)
+        });
+      },
+      validate : function(attrs){
+        if(!_.isString(attrs.Name)) return "姓名必须是字符串"
+        if(!_.isNumber(attrs.Score)) return "分数必须是数字"
+      },
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : 120,
+      Score : "李四"
+    }, {"validate" : true});
+    console.log(student1.toJSON());
+
+    => 姓名必须是字符串
+    => Object {Code: "10001", Name: "张三", Score: 120}

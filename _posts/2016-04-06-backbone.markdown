@@ -8,11 +8,11 @@ tags:
     - backbone
 ---
 
-## 初识 Backbone
+# Backbone 学习笔记 01
 
 ---
 
-### 简介
+## 简介
 
 [中文API](http://www.css88.com/doc/backbone/)
 
@@ -23,7 +23,7 @@ Collection 是指数据的集合, 比如一群人 <br>
 View 是 Model 和 Collection 中数据的展示, 比如也数据渲染到页面 <br>
 Router 是对路由的处理, 在单页面中通过 Router 来控制 View 的展示
 
-### 依赖
+## 依赖
 
 Backbone.js 强制依赖 Underscore.js 这个库,  非强制依赖 jQuery, Zepto 等第三方库
 
@@ -31,7 +31,7 @@ Backbone.js 强制依赖 Underscore.js 这个库,  非强制依赖 jQuery, Zepto
     <script src="underscore.js"></script>
     <script src="backbone.js"></script>
 
-### 第一个 Backbone 应用页面
+## 第一个 Backbone 应用页面
 
 [预览效果](http://jsbin.com/wawadapawi/edit?output)
 
@@ -686,3 +686,57 @@ Underscore.js 是一个非常简洁的, 实用的库, 包含了 60 多个独立�
     => 您触发了change:age事件
     => 您触发了all事件中change:age
     => 您触发了all事件中change
+
+#### 事件与 Model、Collection 、View 的关系
+
+**示例十四 : 在 View 模块中定义事件**
+
+1.功能描述
+
+在构建视图类时, 定义页面中的两个按钮的单击事件。单击"显示"按钮, 将页面中展示 `<div>`  元素的内容, 单击"隐藏"按钮时, 将隐藏 `<div>` 元素中的内容。
+
+2.实现代码
+
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>View 模块中的事件</title>
+        <style type="text/css">
+        body{
+          font-size: 12px;
+        }
+        </style>
+    </head>
+    <body>
+    <div id="view">
+      <input type="button" value="显示" id="btnShow">
+      <input type="button" value="隐藏" id="btnHide">
+    </div>
+    <div id="Info">
+      <span>This is a text .</span>
+    </div>
+    <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+    <script>
+    var infoView = Backbone.View.extend({
+      el : "#view",
+      events : {
+        "click #btnShow" : "ShowInfo",
+        "click #btnHide" : "HideInfo"
+      },
+      ShowInfo : function(){
+        $("#Info").show();
+      },
+      HideInfo : function(){
+        $("#Info").hide()
+      }
+    });
+
+    var view = new infoView();
+    </script>
+    </body>
+    </html>
+
+[演示代码](http://jsbin.com/gefejahiju/edit?html,output)
