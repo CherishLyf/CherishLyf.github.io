@@ -20,6 +20,8 @@ Model 在 Backbone 中为数据模型, 是一个最基础、最根本的数据�
 
 ### 创建数据模型
 
+---
+
 在 Backbone 中, 创建数据模型的方法十分简单, 只要通过 `Model.extend()` 就可以定义一个数据模型。它在定义过程中, 还可以初始化数据、定义构造方法, 当一个数据模型创建成功后, 可以通过实例化的方法, 产生一个个数据对象。这些数据都继承了数据模型中的初始化数据, 并能够方便的调用。
 
 #### 创建一个简单的模型对象
@@ -145,6 +147,8 @@ Model 在 Backbone 中为数据模型, 是一个最基础、最根本的数据�
 
 ### 模型对象操作
 
+---
+
 创建一个数据模型类后, 接下来的任务就是针对模型对象实例化对象, 并对实例化后的对象进行一系列的数据操作。
 
 #### 读取数据
@@ -229,3 +233,228 @@ Backbone 提供了一套完整的数据验证机制, 用于确保写入数据模
 
     => 姓名必须是字符串
     => Object {Code: "10001", Name: "张三", Score: 120}
+
+#### 关闭数据验证
+
+在 Backbone 中, 调用 `set` 方法, 不将 `validate` 属性值设置为 `true`, 本次 `set` 将不会进行数据验证。此外, 还可以将 `silent` 属性设置为 `true`, 表示静默式修改数据, 即再修改数据的时候, 不触发任何事件。
+
+**示例八 : 关闭数据验证**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        this.on("invalid", function(model, error){
+          console.log(error)
+        });
+      },
+      validate : function(attrs){
+        if(!_.isString(attrs.Name)) return "姓名必须是字符串"
+        if(!_.isNumber(attrs.Score)) return "分数必须是数字"
+      },
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : 120,
+      Score : "李四"
+    }, {"silent" : true});
+    console.log(student1.toJSON());
+
+    => Object {Code: "10001", Name: "120", Score: "李四"}
+
+#### 更新数据回滚
+
+在 Backbone 中调用 `set` 方法, 可以将 `silent` 属性设置为 `true`, 为了保证数据安全, 可以调用对象的 `previous` 方法进行数据回滚。
+
+**示例九 : 更新数据回滚**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        this.on("invalid", function(model, error){
+          console.log(error)
+        });
+      },
+      validate : function(attrs){
+        if(!_.isString(attrs.Name)) return "姓名必须是字符串"
+        if(!_.isNumber(attrs.Score)) return "分数必须是数字"
+      },
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : 120,
+      Score : "李四"
+    }, {"silent" : true});
+    console.log(student1.toJSON());
+
+    if(!_.isString(student1.get("Name")) || !_.isNumber(student1.get("Score"))){
+      student1.set({
+        "Name" : student1.previous("Name"),
+        "Score" : student1.previous("Score")
+      })
+    }
+    console.log(student1.toJSON());
+
+    => Object {Code: "10002", Name: 120, Score: "李四"}
+    => Object {Code: "10002", Name: "张三", Score: 120}
+
+#### 删除数据
+
+在 Backbone 中, 可以调用对象的 `unset` 和 `clear` 方法删除模型对象的数据, 前者是删除指定属性名称的数据, 调用格式 :
+
+    Obj.unset(attrName)
+
+后者为清除对象中的全部数据, 该方法没有参数, 调用格式如下 :
+
+    Obj.clear() 
+
+**示例十 : 调用 unset 方法删除指定属性的数据**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 构造函数
+      },
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : "张三",
+      Score : 120
+    });
+
+    // 删除 Name 属性
+    student1.unset("Name");
+    console.log(student1.get("Name"));
+    console.log(student1.toJSON());
+    student1.set("Name", student1.previous("Name"));
+    console.log(student1.toJSON());
+    // 清除全部数据
+    student1.clear();
+    console.log(student1.toJSON());
+
+    => undefined
+    => Object {Code: "10002", Score: 120}
+    => Object {Code: "10002", Score: 120, Name: "张三"}
+    => Object {}
+
+### 对象属性操作
+
+---
+
+#### attributes 对象
+
+在 Backbone 中, 实例化的模型对象所有属性都保存在一个名为 `attributes` 的对象中, 对象的 `set` 和 `get` 方法都是围绕这个对象中存取的。
+
+**示例十一 : 调用 attributes 对象获取全部的属性值**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 构造函数
+      },
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : "李四",
+      Score : 120
+    });
+    // 直接输出 attributes
+    console.log(student1.attributes);
+    // 遍历后输出 attributes
+    var attrs = student1.attributes;
+    for(var i in attrs){
+      console.log(i + ":" + attrs[i]);
+    }
+
+    => Object {Code: "10002", Name: "李四", Score: 120}
+    => Code:10002
+    => Name:李四
+    => Score:120
+
+#### previous 和 previousAttributes 方法
+
+这两个方法都用来返回对象在修改前上一个状态的属性值，第一种调用格式如下 : 
+
+    obj.previous(attrName)
+
+第二种方法返回一个对象, 包含上一个状态的全部数据, 该方法没有参数, 调用方法如下 : 
+
+    obj.previousAttribute()
+
+这两种方法都必须用在 `set` 方法重置数据后使用, 如果没有使用 `set` 方法, 就直接调用 `previous` 和 `previousAttribute`, 将会导致异常。
+
+**示例十二 : 调用 previousAttribute 方法返回数据**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 构造函数
+      },
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : "李四",
+      Score : 120
+    });
+    console.log(student1.toJSON());
+    console.log(student1.previousAttributes());
+
+    => Object {Code: "10002", Name: "李四", Score: 120}
+    => Object {Code: "10001", Name: "张三", Score: 120}
+
+### 同步数据到服务器
+
+---
+
+在 Backbone 中, 客户端的静态页面与服务器之间的数据, 可以通过 `save`、`fetch`、`destroy` 方法分别实现在服务器中保存、获取、删除数据的操作, 通过这些方法可以实现客户端与服务端之间的无缝连接, 完成客户端数据与服务端的同步。
+
+#### save 方法
+
+在 Backbone 中, 对象 `save` 方法的功能是在服务器中保存客户端发送的数据, 在数据发送过程中, 还能通过模型内部的 `isNew` 方法检测数据是否新建还是更新, 如果是新建, 通过 `POST` 方法发送, 否则通过 `PUT` 方式发送。服务器根据数据发送的方式进行数据添加或更新, 并向客户端返回操作结果, 客户端根据结果进行下一步操作。
+
+**示例十三 : 使用 save 方法发送数据**
+
+当一个实例化后的模型对象在模型中设置服务器请求地址 url 属性后, 可以直接调用对象的 `save` 方法, 向服务器发送数据。
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 构造函数
+      },
+      url : "/Ch4/api/save.php",
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : "李四",
+      Score : 120
+    });
+    student1.save();
