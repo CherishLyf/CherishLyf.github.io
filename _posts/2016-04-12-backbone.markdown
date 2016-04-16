@@ -1,0 +1,61 @@
+---
+layout:     post
+title:      "Backbone 学习笔记 03"
+subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - backbone
+---
+
+# Backbone 学习笔记 03
+
+---
+
+## 模型集合
+
+---
+
+前面介绍了 Backbone 的基类 --- 数据模型(Model), 而模型集合(Collection)则是依附基类的另外一个数据集合类, 它的功能是管理和储存由模型衍生的数据集合。
+
+### 创建集合对象
+
+---
+
+#### 自定义集合对象
+
+集合类是依附于数据模型类, 使用自定义集合对象时, 首先自定义一个集合类, 并在集合类中设置 model 属性值来声明模型类。然后实例化一个当前集合类的对象, 就可以向该对象添加各个数据模型对象。
+
+**示例一 : 自定义集合类对象**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var StudentList = Backbone.Collection.extend({
+      model : student
+    });
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : "500"
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : "300"
+    }, {
+      Code : "10003",
+      Name : "王五",
+      Score : "720"
+    }];
+    var stus = new StudentList(stumodels);
+    for(var i = 0, len = stus.models.length; i < len; i++){
+      console.log(stus.models[i].toJSON());
+    }
+
+    => Object {Code: "10001", Name: "张三", Score: "500"}
+    => Object {Code: "10002", Name: "李四", Score: "300"}
+    => Object {Code: "10003", Name: "王五", Score: "720"}

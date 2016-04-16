@@ -458,3 +458,113 @@ Backbone 提供了一套完整的数据验证机制, 用于确保写入数据模
       Score : 120
     });
     student1.save();
+
+**示例十四 : 使用 save 接收返回值**
+
+使用对象的 `save` 方法发送数据至服务器, 服务器将接收发送数据写入数据库, 实现保存或修改的功能。操作完成后, 将向客户端发送一个成功或者失败的标志, 客户端根据这一返回值进行下一步操作。
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 构造函数
+      },
+      url : "/Ch4/api/save.php",
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+    student1.set({
+      Code : "10002",
+      Name : "李四",
+      Score : 120
+    });
+    student1.save(null, {
+      success : function(model, response){
+        console.log(response.code);
+      }
+    });
+
+**示例十五 : 使用 save 方法时设置 wait 属性**
+
+在调用 `save` 方法向服务器保存数据时, 不仅可以在配置对象中添加 `success` 或者 `error` 函数, 还可以将 `wait` 属性设置为 `true`。在配置对象中, 将 `wait` 属性设置为 `true` 时, 将会调用 `validate` 方法, 对发送的数据进行验证, 如果没有通过验证, 将不会向服务器发送数据, 对象进行回滚, 返回上一状态。此外, 向服务器发送数据时, 如果请求失败也将导致数据的回滚。
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 构造函数
+      },
+      url : "save2.php",    // 这里不存在这个文件
+      defaults : {
+        Code : "10001",
+        Name : "张三",
+        Score : 120
+      }
+    });
+    var student1 = new student();
+
+    student1.save({
+      Code : "10002",
+      Name : "李四",
+      Score : 120
+    }, {
+      success : function(model, response){
+        console.log(response.code);
+      },
+      wait : true
+    });
+    console.log(student1.toJSON());
+
+#### fetch 方法
+
+与 `save` 方法不同, fetch 方法的功能是从服务器获取数据, 常用于数据模型初始化或数据恢复, 该方法采用 get 方式请求服务器中的数据, 当请求成功后, 将调用 `set` 方法重置模型的 `this.attributes` 对象。同时, 如果重置成功, 调用 `success` 函数, 否则直接返回。
+
+**示例十六 : 使用 fetch 方法获取服务器数据**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        // 构造函数
+      },
+      url : "fetch.php"
+    });
+    var student1 = new student();
+    student1.fetch({
+      success : function(model, response){
+        console.log(student1.toJSON())
+      },
+      error : function(err){
+        console.log("error")
+      }
+    })
+
+#### destroy 方法
+
+在 Backbone 中, 当调用对象的 `destroy` 方法时, 将以 DELETE 请求方式向服务器发送对象的 ID 数据, 服务器接收该数据后删除对应的数据记录, 并向客户端发送删除成功的标志。<br>
+由于是删除对象的数据, 因此在调用 `destroy` 方法时, 必须发送 ID 号属性, 如果不存在该属性, 通过 `idAttribute` 属性进行设置, 否则不会发送数据请求操作。<br>
+此外, 在调用 `destroy` 方法时, 也可以配置 `success`、`error`函数、或将 `wait` 属性设置为 `true`, 当请求服务器删除数据成功并接收返回值后, 不仅触发绑定的 `destroy` 事件, 而且还调用 `success` 函数; 当请求服务器失败时, 将 `wait` 属性设为 `true`, 则不会触发绑定的 `destroy` 事件, 否则会触发 `destroy` 事件并且执行 `error` 函数。
+
+**示例十七 : 使用 destroy 方法从服务器删除数据**
+
+    var student = Backbone.Model.extend({
+      initialize : function(){
+        this.on("destroy", function(){
+          console.log("正在调用 destroy 方法");
+        })
+      },
+      url : "destroy.php",
+      idAttribute : "Code"
+    });
+    var student1 = new student({
+      Code : "10002"
+    });
+    student1.destroy({
+      success : function(model, response){
+        if(response.code == 0){
+          console.log("Code为" + model.get("Code") + "的数据已删除")
+        }
+      },
+      error : function(error){
+        console.log(error)
+      },
+      wait : true
+    })
