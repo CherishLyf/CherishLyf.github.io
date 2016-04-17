@@ -1,0 +1,72 @@
+---
+layout:     post
+title:      "Backbone 学习笔记 04"
+subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - backbone
+---
+
+# Backbone 学习笔记 04
+
+---
+
+## 视图
+
+---
+
+前面说的模型(Model)和集合(Collection), 都属于底层的数据处理, 真正的页面交互是视图(View), 它的核心功能是处理数据业务逻辑、绑定 DOM 元素事件、渲染模型或集合数据。
+
+### 视图基础
+
+---
+
+在定义一个视图对象之前, 需要构建一个视图类。在构建类时, 可以设置 `el` 元素关联 DOM 中的元素; 也可以指定与视图相关的模型或集合类名, 实现各个类之间对象的数据互访问。
+
+#### 定义视图对象
+
+先通过 `extend` 方法构建一个视图类, 再通过关键字 `new` 方法实例化视图对象, 在对象中可以调用视图类中的方法。
+
+    var testView = Backbone.View.extend({
+      // 构建类的逻辑结构
+      ...
+    });
+    // 根据构建的类实例化一个 test 视图对象
+    var test = new testView();
+
+
+**示例一 : 通过视图对象添加 DOM 元素**
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>View 模块中的事件</title>
+        <style>
+        .cls_6{
+          font-size: 12px;
+        }
+        </style>
+    </head>
+    <body>
+    <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+    <script>
+    var testView = Backbone.View.extend({
+      id : "show",
+      className : "cls_6",
+      render : function(content){
+        this.el.innerHTML = content;
+        document.body.appendChild(this.el);
+      }
+    });
+    // 根据构建的类实例化一个 test 视图对象
+    var test = new testView();
+    test.render("我在学习Backbone！")
+    </script>
+    </body>
+    </html>
+
+ 

@@ -455,89 +455,6 @@ JS能够处理的最大精确整数
 
     => [1, 3]
 
-### compose 
-
-`_.compose(*functions)` <br>
-返回函数集 `functions` 组合后的复合函数, 也就是一个函数执行完再把函数执行结果作为参数传递给下个函数执行
-
-    _.compose = function(){
-      var args = arguments;
-      // 最后一个参数的 index 值
-      var start = args.length - 1;
-      return function(){
-        var i = start;  
-        var result = args[start].apply(this, arguments)
-        while (i--) result = args[i].call(this, result)
-        return result;
-      }
-
-**示例**
-
-    var personName = function(name){
-      return name;
-    };
-    var personal = function(str){
-      return "我叫" + str + "!";
-    }
-    var introduction = _.compose(personal, personName);
-    console.log(introduction("刘一凡"))
-
-    => 我叫刘一凡!
-
-### after
-
-`_.after(count, function)` <br>
-创建一个函数, 运行 `count` 次后, 触发 `function`
-
-    _.after = function(times, func){
-      return function(){
-         if(--times < 1){
-           return func.apply(this, arguments)
-         }
-      }
-    }
-
-**示例**
-
-    function a(){
-      console.log("a")
-    }
-
-    var ConsoleA = _.after(3, a);
-
-    ConsoleA();  // 没触发 a()
-    ConsoleA();  // 没触发 a()
-    ConsoleA();  // 触发 a(), 输出 a
-
-### before
-
-`_.before(count, function)` <br>
-创建一个函数, 调用 `function` 不超过 `count` 次, 第 `count` 次返回, 不执行 `function`
-
-    _.before = function(times, func){
-      var memo ;
-      return function(){
-        if(--times > 0){
-          memo = func.call(this, arguments)
-        }
-        if(times <= 1) func = null;
-
-        return memo;
-      }
-    }
-
-**示例**
-
-    function a(){
-      console.log("a")
-    }
-
-    var ConsoleA = _.before(3, a);
-
-    ConsoleA();  // 触发 a()
-    ConsoleA();  // 触发 a()
-    ConsoleA();  // 没触发 a()
-
 ## 数组方法
 
 --- 
@@ -651,7 +568,93 @@ JS能够处理的最大精确整数
       }
     }
 
+### compose 
+
+`_.compose(*functions)` <br>
+返回函数集 `functions` 组合后的复合函数, 也就是一个函数执行完再把函数执行结果作为参数传递给下个函数执行
+
+    _.compose = function(){
+      var args = arguments;
+      // 最后一个参数的 index 值
+      var start = args.length - 1;
+      return function(){
+        var i = start;  
+        var result = args[start].apply(this, arguments)
+        while (i--) result = args[i].call(this, result)
+        return result;
+      }
+
+**示例**
+
+    var personName = function(name){
+      return name;
+    };
+    var personal = function(str){
+      return "我叫" + str + "!";
+    }
+    var introduction = _.compose(personal, personName);
+    console.log(introduction("刘一凡"))
+
+    => 我叫刘一凡!
+
+### after
+
+`_.after(count, function)` <br>
+创建一个函数, 运行 `count` 次后, 触发 `function`
+
+    _.after = function(times, func){
+      return function(){
+         if(--times < 1){
+           return func.apply(this, arguments)
+         }
+      }
+    }
+
+**示例**
+
+    function a(){
+      console.log("a")
+    }
+
+    var ConsoleA = _.after(3, a);
+
+    ConsoleA();  // 没触发 a()
+    ConsoleA();  // 没触发 a()
+    ConsoleA();  // 触发 a(), 输出 a
+
+### before
+
+`_.before(count, function)` <br>
+创建一个函数, 调用 `function` 不超过 `count` 次, 第 `count` 次返回, 不执行 `function`
+
+    _.before = function(times, func){
+      var memo ;
+      return function(){
+        if(--times > 0){
+          memo = func.call(this, arguments)
+        }
+        if(times <= 1) func = null;
+
+        return memo;
+      }
+    }
+
+**示例**
+
+    function a(){
+      console.log("a")
+    }
+
+    var ConsoleA = _.before(3, a);
+
+    ConsoleA();  // 触发 a()
+    ConsoleA();  // 触发 a()
+    ConsoleA();  // 没触发 a()
+
+
 ## 公用函数
+
+---
 
 ### identity
 

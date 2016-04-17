@@ -59,3 +59,468 @@ tags:
     => Object {Code: "10001", Name: "张三", Score: "500"}
     => Object {Code: "10002", Name: "李四", Score: "300"}
     => Object {Code: "10003", Name: "王五", Score: "720"}
+
+#### 实例化集合对象
+
+相对于前面那种采用 `extend()` 的方式自定义集合类, 可以在自定义的类中拓展其他属性和方法。也可以通过直接实例化一个集合类的方式来实现集合对象。
+
+**示例二 : 实例化集合对象**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : "500"
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : "300"
+    }, {
+      Code : "10003",
+      Name : "王五",
+      Score : "720"
+    }];
+    var stus = new Backbone.Collection(stumodels, {
+      model : student
+    });
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+
+#### 自定义集合方法
+
+以自定义的方式构建集合类时, 不仅通过 model 属性指定依附的数据模型, 而且还可以自定义方法。因为集合类对象中, 都是针对数据的储存和管理, 集合中的方法侧重于对数据的操作, 例如过滤数据。
+
+**示例三 : 自定义集合方法**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var stuList = Backbone.Collection.extend({
+      model : student,
+      good : function(){
+        return this.filter(function(stu){
+          return stu.get("Score") > 400;
+        })
+      }
+    })
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : "500"
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : "300"
+    }, {
+      Code : "10003",
+      Name : "王五",
+      Score : "720"
+    }];
+    var stus = new stuList(stumodels);
+    var stug = stus.good();
+    for(var i = 0; i < stug.length; i++){
+      console.log(stug[i].toJSON());
+    }
+
+    => Object {Code: "10001", Name: "张三", Score: "500"}
+    => Object {Code: "10003", Name: "王五", Score: "720"}
+
+### 操作集合中模型对象
+
+---
+
+上面介绍了定义集合对象的方法, 当一个集合对象定义完成后, 它所包含的都是定义时的一个个数据模型对象。这些模型对象也可以通过集合类提供的方法进行移除, 也能调用添加模型对象的方法进行再次增加。在移除或者增加时, 将自动触发 `remove` 或 `add` 事件。此外还可以针对集合中对象进行查询和排序操作。
+
+#### 移除集合对象中的模型
+
+集合类中提供了 3 种移除集合对象中模型的方法, 分别是 `remove`、`pop`、`shift`, 他们的使用方法如下 ： 
+
+`remove` 方法功能是从指定集合对象中移除一个或多个模型对象 : 
+    
+    obj.remove(models, options)
+
+`obj` 为实例化后的集合对象, `models` 为一个或多个模型对象, `options` 为配置对象, 可以在该对象中设置 `silent` 属性等。
+
+`pop` 方法的功能是移除集合对象中最后一个模型对象 : 
+
+    obj.pop(options)
+
+`shift` 方法的功能是移除集合对象集合中首个模型对象 : 
+
+    obj.shift(options)
+
+**示例四 : 移除集合对象中的模型**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var stuList = Backbone.Collection.extend({
+      model : student
+    })
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : "500"
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : "300"
+    }, {
+      Code : "10003",
+      Name : "王五",
+      Score : "720"
+    }, {
+      Code : "10004",
+      Name : "赵六",
+      Score : "1100"
+    }];
+    var stus = new stuList(stumodels);
+
+    // 删除第1条模型对象
+    stus.shift();
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+
+    // 删除第3条模型对象
+    stus.remove(stus.models[2]);
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+
+    // 删除最后一条模型对象
+    stus.pop();
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+
+#### 添加集合对象中的模型
+
+集合类还提供了与删除方法向对应增加对象模型的方法, 用于新增原始对象模型数据之外的新模型对象。
+
+`add` 方法 与 `remove` 对应, 功能是向集合对象中指定位置插入模型对象, 如果没有指定位置, 则默认为结合尾部。
+
+    obj.add(models, options)
+
+`push` 方法与 `pop` 方法对应, 功能是向集合对象尾部插入模型对象。
+
+    obj.push(models, options)
+
+`unshift` 与 `shift` 方法对应, 功能是向集合对象的头部插入模型对象。
+
+    obj.unshift(models, options)
+
+**示例五 : 添加集合对象中的模型**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      }
+    });
+    var stuList = Backbone.Collection.extend({
+      model : student
+    })
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : "500"
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : "300"
+    }];
+    var stus = new stuList(stumodels);
+    var newmodels = [{
+      Code : "10003",
+      Name : "王五",
+      Score : "720"
+    }, {
+      Code : "10004",
+      Name : "赵六",
+      Score : "1100"
+    }];
+
+    // 头部添加
+    stus.unshift(newmodels[0]);
+    // 在索引为2的位置插入模型对象
+    stus.add(newmodels[1], {at : 2})
+    // 在末尾插入模型对象
+    stus.push(newmodels[1]);
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+
+#### 查找集合对象中的模型
+
+之前介绍了如何在对象中删除和添加模型对象的方法, 除此之外, 还可以通过集合类中提供的 `get`、`at`、`findWhere`、`where` 方法, 查找集合中的一个或者多个模型对象, 接下来详细地介绍这几个方法的用法。
+
+`get` 方法的功能是通过制定 ID 号获取集合中的某一个模型对象, 它的调用格式如下 : 
+
+    obj.get(id)
+
+`at` 方法的功能是通过制定索引号获取集合中某个模型对象 : 
+
+    obj.at(index)
+
+`findWhere` 方法的功能是查找与属性名称和属性值相匹配的第一个模型对象
+
+    obj.findWhere(attrs)
+
+`where` 方法的功能是查找与属性名称和属性值相匹配的第一个模型对象或多个模型对象，与 `findWhere` 相比, 通过新增的参数可以决定它查找时返回的对象模型数量
+
+    obj.where(attrs, first)
+
+新增的 `first` 参数是一个布尔型的值, 当设为 `true` 时, 表示返回与属性名称与和属性值相匹配的第一个模型对象, 这时的功能与 `findWhere` 相同; 当参数为 `false`, 表示返回与属性名称和属性值相匹配的全部模型对象是一个数组集合。
+
+**示例六 : 查找集合对象中的模型**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      },
+      idAttribute : "Code"
+    });
+    var stuList = Backbone.Collection.extend({
+      model : student
+    })
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : "500"
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : "300"
+    }, {
+      Code : "10003",
+      Name : "王五",
+      Score : "720"
+    }, {
+      Code : "10004",
+      Name : "赵六",
+      Score : "1100"
+    }];
+    var stus = new stuList(stumodels);
+    // 输出全部对象
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+    console.log("----------查询结果----------");
+    // 查找ID号为 10002 的学生
+    console.log(stus.get(10002).toJSON());
+    // 查找索引为 3 的学生
+    console.log(stus.at(3).toJSON());
+    // 查找与属性名称和值相匹配的对象模型
+    var find_0_model = stus.findWhere({
+      Score : "720"
+    });
+    var find_1_model = stus.where({
+      Score : "720"
+    }, true);
+    var find_2_model = stus.where({
+      Score : "720"
+    }, false);
+    console.log(find_0_model.toJSON());
+    console.log(find_1_model.toJSON());
+    for(var i = 0; i < find_2_model.length; i++){
+      console.log(find_2_model[i].toJSON());
+    }
+
+#### 集合中对象的排序
+
+集合类还提供了对集合中模型对象的排序功能, 只需调用 `sort` 方法。
+
+    obj.sort(options)
+
+在集合对象调用 `sort` 方法之前, 必须在实例化集合对象时添加一个名为 `comparator` 方法, 如果不添加该方法, 调用 `sort`, 则提示错误。<br>
+在添加 `comparator` 方法时, 需要设置两个参数 `model_1` 和 `model_2`, 分别对应两个相邻的模型对象。通过两个模型对象的排序属性值的比较, 设置按该属性的名称排序的顺序。<br>
+如果升序排列, 当前者大于后者时, 返回 1; <br>
+如果降序排列, 当前者大于后者时, 返回 0; <br>
+集合对象的 `sort` 方法, 无论新增或移除集合中的任意模型对象, 该方法又将自动被调用。
+
+ **示例七 : 集合中模型对象的排序**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : ""
+      },
+      idAttribute : "Code"
+    });
+    var stuList = Backbone.Collection.extend({
+      model : student,
+      comparator : function(model_1, model_2){
+        var intcomp = model_1.get("Score") > model_2.get("Score");
+        return intcomp ? 0 : 1;
+      }
+    })
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : 500
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : 300
+    }, {
+      Code : "10003",
+      Name : "王五",
+      Score : 720
+    }, {
+      Code : "10004",
+      Name : "赵六",
+      Score : 110
+    }];
+    var stus = new stuList(stumodels);
+    stus.sort();
+    // 增加和删除模型前后排序输出全部模型对象
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+    stus.remove(stus.models[3]);
+    stus.add({
+      Code : "10005",
+      Name : "小明",
+      Score : 1000
+    });
+    console.log("----------排序结果-----------");
+    for(var i = 0; i < stus.models.length; i++){
+      console.log(stus.models[i].toJSON());
+    }
+
+### 与服务器交互集合中模型对象
+
+---
+
+集合类中提供了 `fetch` 和 `create` 方法与服务器进行数据交互, `fetch` 用于从服务器接口获得集合对象初始化的数据, `create` 方法用于将创建好的集合对象的全部模型对象数据发送到服务器, 完成数据同步的。
+
+#### 调用 fetch 方法获取服务器数据
+
+与数据模型对象相似, 集合对象也可以通过调用本身类中提供的 `fetch` 方法与服务器交互, 获取服务器返回数据 : 
+
+    obj.fetch(options)
+
+ **示例八 : 调用 fetch 方法获取服务器数据**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : 0
+      }
+    });
+    var stuList = Backbone.Collection.extend({
+      initialize : function(){
+        console.log("----------reset事件触发---------");
+        this.on("reset", function(render){
+          for(var i = 0; i < render.models.length; i++){
+            console.log(render.models[i].toJSON());
+          }
+        })
+      },
+      model : student,
+      url : "fetch.php"
+    });
+    var stus = new stuList();
+    stus.fetch({
+      reset : true,
+      success : function(collection, resp, options){
+        console.log("---------请求成功时触发-----------");
+        for(var i = 0; i < collection.models.length; i++){
+          console.log(collection.models[i].toJSON());
+        };
+      }
+    })
+
+#### 调用 create 方法与服务器同步数据
+
+集合对象中的 `create` 方法和模型对象的 `save` 方法相似, 都是向服务器发送模型对象, 进行数据同步。而集合方法调用 `create` 方法时, 先根据对象的本身所依附的模型类新建一个模型对象, 当与服务器数据同步成功后, 再将新建的模型对象添加至集合对象中。
+
+    obj.create(model, options)
+
+ **示例九 : POST和PUT方式发送数据**
+
+如果发送对象模型时未指定 ID 号, 将以 POST 方法向服务器发送数据; 如果设置了, 将以 PUT 方法向服务器发送数据。
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : 0
+      }
+    });
+    // var student = Backbone.Model.extend({
+    //   defaults : {
+    //     Code : "",
+    //     Name : "",
+    //     Score : 0
+    //   },
+    //   idAttribute : "Code"
+    // });
+    var stuList = Backbone.Collection.extend({
+      model : student,
+      url : "create.php"
+    });
+    var stus = new stuList();
+    stus.create({
+      Code : "10001",
+      Name : "张三",
+      Score : 750
+    })
+
+ **示例十 : 触发集合的 add 事件**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : 0
+      }
+    });
+    var stuList = Backbone.Collection.extend({
+      initialize : function(){
+        // 初始化监听对象添加事件
+        this.on("add", function(model, response, options){
+          console.log(stus.models[0].toJSON());
+        })
+      },
+      model : student,
+      url : "create.php"
+    });
+    var stus = new stuList();
+    stus.create({
+      Code : "10001",
+      Name : "张三",
+      Score : 750
+    })
+
+    => Object {Code: "10001", Name: "张三", Score: 750}
+
+ **示例十一 : 设置 wait 和 silent 属性**
+
+ 当调用 `create` 方法并将配置对象的 `wait` 属性设置为 `true`时, 表示只有当客户端与服务器数据成功完成数据同步之后, 才能将发送的模型对象添加到集合中。
+ 如果不设置该属性或者设为 `false`, 则直接将发送的模型对象添加到集合对象中。
+
+ 当 `silent` 属性值设置为 `true` 时, 表示不管客户端与服务器是否成功完成同步数据的操作, 都将发送的模型对象添加到集合对象中。将 `silent` 属性设置为 `false` 或者不添加该属性, 只有当客户端与服务器成功完成数据同步后, 才会将发送的模型对象添加到集合对象中。
+
+ 
