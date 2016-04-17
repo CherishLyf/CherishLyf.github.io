@@ -69,4 +69,117 @@ tags:
     </body>
     </html>
 
- 
+ #### 视图对象访问模型对象
+
+**示例二 : 视图对象访问模型对象**
+
+    <div id="show" class="cls_6"></div>
+    <script>
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : 0
+      }
+    });
+    var stus = new student({
+      Code : "10001",
+      Name : "张三",
+      Score : 120
+    });
+    var stusView = Backbone.View.extend({
+      el : "#show",
+      render : function(content){
+        this.el.innerHTML = JSON.stringify(this.model);
+      }
+    });
+    // 根据构建的类实例化一个 test 视图对象
+    var stuv = new stusView({ model : stus });
+    stuv.render();
+
+#### 视图对象访问集合对象
+
+**示例三 : 视图对象访问集合对象**
+
+    var stumodels = [{
+      Code : "10001",
+      Name : "张三",
+      Score : 120
+    }, {
+      Code : "10002",
+      Name : "李四",
+      Score : 150
+    }];
+    var stuList = new Backbone.Collection(stumodels);
+    var stusView = Backbone.View.extend({
+      el : "#show",
+      render : function(content){
+        var curlist = this.collection.models;
+        for(var i = 0; i < curlist.length; i++){
+          this.el.innerHTML += JSON.stringify(curlist[i]) + "<br />"
+        }
+      }
+    });
+    // 根据构建的类实例化一个 test 视图对象
+    var stuv = new stusView({ collection : stuList });
+    stuv.render();
+
+### 视图的模板
+
+---
+
+视图中的模板分为两部分 : <br>
+第一部分在页面中使用 `<script>` 元素定义。定义时, 只要将元素的 `type` 属性设置为 `text/template`, 表明该元素包含的代码区域都为模板区。在模板区中, 采用 `<%= 变量名称 %>` 的形式定义变量, 并且可以处理业务逻辑。然后, 在 Javascript 代码中通过字典的方式传递给变量。<br>
+第二部分是在 JavaScript 代码中, 通过 `_.template()` 函数访问页面定义的模板内容, 当重载模板内容时, 可以通过字典的形式向模板中传递变量对应的值。
+
+#### 处理逻辑代码
+
+使用 `<script>` 元素定义的页面模板区域中, 在 `<% %>` 区域内, `<% %>` 表示区别于其他 HTML 元素的特殊符号, `=` 表示取值, `<%= %>` 区域内的变量会在调用模板时, 被以字典方式传入的对应值所取代, 如果是字符内容则原样输出, `<%= %>` 区域内还是支持简单的 JavaScript 语句。
+
+**示例四 : 处理逻辑代码**
+
+    <body>
+    <div id="score"></div>
+    <script type="text/template" id="score-tpl">
+      <%= score >= 600 ? "优秀" : "及格" %>
+    </script>
+    <script>
+    var stuView = Backbone.View.extend({
+      el : $("#score"),
+      initialize : function(){
+        this.template = _.template($("#score-tpl").html());
+      },
+      render : function(pscore){
+        this.$el.html(this.template({ score : pscore }))
+      }
+    });
+    var stuv = new stuView();
+    stuv.render(600);
+
+#### 显示多项内容的模板
+
+**示例五 : 显示多项内容的模板**
+
+    var student = Backbone.Model.extend({
+      defaults : {
+        Code : "",
+        Name : "",
+        Score : 0
+      }
+    });
+    var stus = new student({
+      Code : "10001",
+      Name : "张三",
+      Score : 120
+    });
+    var stuView = Backbone.View.extend({
+      el : $("#ulshowstus"),
+      initialize : function(){
+        this.template = _.template($("#stus-tpl").html());
+      },
+      render : function(){
+        this.$el.html(this.template(this.model.toJSON()));
+      }
+    });
+    var stuv = new stuView({ model : stus });
+    stuv.render();
