@@ -1,0 +1,68 @@
+---
+layout:     post
+title:      "Backbone 学习笔记 05"
+subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - backbone
+---
+
+# Backbone 学习笔记 05
+
+## 导航控制器
+
+---
+
+前面说过, Backbone 框架的最佳应用场景应该是构建一个逻辑复杂的单页面应用。<br>
+Backbone 中提供了两个重要的类模型, 导航控制器(Router) 和 历史(history), Router 封装了兼容各类浏览器 `history` 的方法, 通过浏览器的 `hash` 对象和 HTML5 中的 `pushState` 方法, 将某阶段特殊的 URL 或描点地址与既定的事件(event) 或函数(action) 相绑定。输入这些 URL 地址时, 对应完成不同的功能。
+
+### 浏览器导航基础
+
+---
+
+在正式介绍 Backbone 中的导航控制器(router), 有必要了解下浏览器的导航功能基础知识, 包含浏览器窗口(window)的 history, HTML5 中的 history API 和 location 对象。了解这些有利于对 Backbone 中的导航控制器工作原理的理解和掌握。  
+
+#### history 对象
+
+在 JavaScript 中, `history` 对象用于保存浏览器历史记录。<br>
+其中有两个方法 `back`、`forward`
+
+`back` 方法用于返回浏览器历史记录中当前页的**上一页**, 与浏览器的"后退"按钮功能相同。
+
+    window.history.back()
+
+`forward` 方法是进入浏览器历史记录中当前页的**下一页**, 与浏览器的"前进"按钮功能相同。
+
+    window.history.forward()
+
+`go` 方法也能实现页面的前进和后退, 调用格式 : 
+
+    window.history.go(n)
+
+`n` 为一个整数, 大于 0 表示前进, 小于 0 表示后退。
+
+#### HTML 5 中的 history 对象 API
+
+HTML5 基于原有对象方法新增了两个实用的 API 方法 ： 
+
+`pushState` 方法 : 功能是向历史记录堆栈的顶部添加一条记录, 常用于实现页面的无刷新跳转 
+
+    window.history.pushState(data, title, [, url])
+
+其中 `data` 参数表示再添加记录时传递的数据对象, 该对象通常为 JSON 格式的字符串, 参数 `title` 为页面显示的标题, 可选参数为页面跳转链接, 默认为当前页地址。
+
+`replaceState` 方法 : 功能是修改当前页面的历史记录值 
+
+    window.history.replaceState(data, title, [, url])
+
+`history` 对象还有一个重要的 `state` 属性, 通过该属性可以获取使用 `pushState` 方法新增的实体对象内容, 即在使用 `pushState` 时的 `data` 参数的实体值, 他的调用格式为 :
+
+    window.history.state
+
+各个浏览器对 HTML5 标准支持不全面, 在使用 `history` 对象两个新增的 API 方法时, 需要检测浏览器的支持状态 :
+
+    funtion support_history_api(){
+        return !!(window.history && history.pushState)
+    }
+ 

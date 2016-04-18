@@ -42,7 +42,7 @@ tags:
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>View 模块中的事件</title>
+        <title>通过视图对象添加 DOM 元素</title>
         <style>
         .cls_6{
           font-size: 12px;
@@ -183,3 +183,140 @@ tags:
     });
     var stuv = new stuView({ model : stus });
     stuv.render();
+
+### 视图中的元素事件
+
+---
+
+在构建视图类时, 可以添加一个 `events` 属性, 该属性的功能是将 DOM 与触发的事件和执行的函数相绑定, 事件绑定的格式如下 : 
+
+    eventName element : function
+
+#### 视图中简单事件绑定
+
+**示例六 : 视图中简单事件绑定**
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>视图中简单事件绑定</title>
+        <style>
+        body{
+          font-size: 12px;
+        }
+        div{
+          width: 260px;
+          padding: 5px;
+        }
+        .changed{
+          border: 1px solid #555;
+        }
+        </style>
+        <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+        <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+        <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+    </head>
+    <body>
+    <script>
+      var stuView = Backbone.View.extend({
+        el : $("body"),
+        initialize : function(){
+          this.render();
+        },
+        render : function(){
+          this.$el.append("<div id='backbone'>Backbone是构建前端MVC的利器</div>");
+        },
+        events : {
+          "click div#backbone" : "togcls"
+        },
+        togcls : function(){
+          $("#backbone").toggleClass("changed");
+        }
+      });
+      var stuv = new stuView();
+    </script>
+    </body>
+    </html>
+
+#### 绑定视图模板中多个事件
+
+**示例七 : 绑定视图模板中多个事件**
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>绑定视图模板中多个事件</title>
+        <style>
+        body{
+          font-size: 12px;
+        }
+        div{
+          width: 260px;
+          padding: 5px;
+        }
+        .changed{
+          border: 1px solid #555;
+        }
+        </style>
+        <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+        <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+        <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+    </head>
+    <body>
+    <div id="main"></div>
+    <script type="text/template" id="main-tpl">
+      <div id="backbone"><%= mess %></div>
+      <input type="button" value="点击一下" id="btnshow" />
+    </script>
+    <script>
+    var stuView = Backbone.View.extend({
+      el : $("#main"),
+      initialize : function() {
+        this.template = _.template($("#main-tpl").html());
+        this.render();
+      },
+      render :function(){
+        this.$el.html(this.template({ mess : "Backbone是构建前端MVC的利器" }))
+      },
+      events : {
+        "click #backbone" : "togglecls",
+        "click #btnshow" : "toggleshow"
+      },
+      togglecls : function(){
+        $("#backbone").toggleClass("changed");
+      },
+      toggleshow : function(){
+        $("#backbone").toggle();
+      }
+    });
+    var stuv = new stuView();
+    </script>
+    </body>
+    </html>
+
+#### 动态绑定和取消视图中的事件
+
+除了构建视图类中, 通过添加 `events` 属性的方式声明绑定元素的事件之外, 视图内部提供了 `delegateEvents` 和 `undelegateEvents` 方法, 用于动态绑定和取消绑定元素的事件。<br>
+`delegateEvent` 方法的功能是重新绑定 `events` 属性值中已声明的全部元素事件, 其调用格式如下 : 
+
+    delegateEvents([events])
+
+`undelegateEvent` 方法的功能是取消所有已绑定元素的事件, 调用格式如下 : 
+
+    undelegateEvent()
+
+### 使用 Backbone 框架开发前端 Web 应用
+
+---
+
+通过前面的学习, 我们对框架 Backbone 框架的各个主要功能类模块有了一定了解, 总体来讲, Backbone 框架中的 `model` 对象表示数据模型, 用于定义数据结构; `collection` 对象是管理数据模型的集合, 用于保存数据或查找数据; `view` 对象主要功能是数据显示, 用于绑定 DOM 元素事件和处理页面逻辑。下面通过一个完整的例子, 详细介绍利用 Backbone 框架开发一个单页面应用。
+
+1.功能描述
+
+包含两个功能, 首先是数据录入功能, 在页面中添加3个文本输入框分别用于输入"编号"、"姓名"、"分数"; 添加一个提交按钮, 单击该按钮时, 将输入的数据以模型对象的方式添加到集合对象中。其次是数据显示功能, 当输入的数据添加完成之后, 将已添加的数据通过视图对象显示在页面的指定元素中。
+
+2.实现代码
+
+[代码演示](http://jsbin.com/guporivole/edit?output)
