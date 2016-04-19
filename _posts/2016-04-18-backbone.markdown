@@ -65,4 +65,97 @@ HTML5 基于原有对象方法新增了两个实用的 API 方法 ：
     funtion support_history_api(){
         return !!(window.history && history.pushState)
     }
- 
+
+#### location 对象
+
+在浏览器窗口中, `location` 对象的功能是管理浏览器的地址。该对象拥有很多实用的属性和方法, 比如 `href` 属性和 `reload` 方法等, 前者可获取当前浏览器地址, 后者方法可以重新按地址加载。
+
+### 绑定导航地址
+
+---
+
+前面的章节, 使我们了解了浏览器窗口的 `history`、`location`对象属性和方法的实用, 在 Backbone 框架中构建 `router` 类时, 大量封装了这两种对象的属性和方法, 将页面特定的 url 或 hash 属性与定义好的 action 或 events 相绑定。在地址栏浏览这些 URL 时, 绑定的 action 对应的函数或执行相应的事件, 可以实现无刷新加载新内容, 以及收藏特定 URL 片段的功能。
+
+#### action 方式绑定 URL 地址
+
+所谓 `action` 方式, 是将页面特定的 URL 或 `hash` 属性与一个对应的函数(动作)相绑定, 即在构建 `router` 类时, 通过添加 `routes` 属性, 在属性中声明 URL 或 `hash` 属性和函数的对应关系, 这样就完成了两者间的绑定。一旦绑定完成, 在浏览器中浏览对应的 URL 地址时, 执行对应函数中的代码。
+
+**示例一 : actions 方式绑定 URL 地址**
+
+[演示代码](http://jsbin.com/ziyomaloqu/edit?html,output)
+
+#### event 方式绑定 URL 地址
+
+在构建 `router` 类中, 通过添加 `routes` 属性声明需要监听的 URL 地址列表时, 每绑定一个对象的 `key/value` 关系, 会触发一个基于动作(action) 函数名的事件。实例化后的 `router` 类对象可以绑定该事件, 并在事件中还可以接收 URL 地址传来的实参数据。
+
+**示例二 : event 方式绑定 URL 地址**
+
+[演示代码](http://jsbin.com/fapeselifu/edit?html,output)
+
+#### 定义 hash 属性绑定规则
+
+构建 `router` 类并添加 `routes` 属性来声明需要监听的 URL 地址列表时, 被监听的 key 部分用于定义当前 URL 地址中 hash 属性的规则。在该规则中, 需要注意以下几种特殊字符代表的含义。
+
+`/` 反斜杠表示内容的分割, 该字符串在 `router` 类内部会自动转换成 "([^\/])" 表达式, 例如定义如下匹配的规则 :
+
+    "#search/a/b/c" : "search_a_b_c"
+
+必须在地址栏中输入如下地址 :
+
+    http://localhost/XX.html#search/a/bc
+
+`:` 冒号表示该段内容将以参数的形式传递给对应的动作(action)函数, 而函数也可以通过以回调参数方式进行接收。例如 :
+
+    "#search/:a/m:b/n:c" : "search_a_m_n" 
+
+必须在地址栏中输入如下地址 : 
+
+    http://localhost/XX.html#search/1/m2/n3
+
+在该函数中, 形参 a 对应实参 1, 形参 m 对应实参 2, 形参 n 对应实参 3.
+
+`*` 星号表示零个或多个任意字符串
+
+**示例三 : 定义 hash 属性绑定规则**
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Router</title>
+        <style>
+        div{
+          font-size: 13px;
+          margin: 5px 0;
+        }
+        </style>
+        <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+        <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+        <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+    </head>
+    <body>
+    <div>
+      <a href="#abc/p5">其他页</a>
+    </div>
+    <div id="divShow"></div>
+    <script>
+      var $divShow = $("#divShow");
+      var testrouter = Backbone.Router.extend({
+        routes : {
+          "*path/p:page" : "search_other"
+        },
+        search_other : function(path, page){
+          $divShow.html("路径名为 " + path + " , 页码为 " + page);
+        }
+      });
+      var router = new testrouter();
+      Backbone.history.start();
+    </script>
+    </body>
+    </html>
+
+    ### router 类中的方法
+
+    ---
+
+    在 Backbone 框架中的 router 类中, 通过添加 `routes` 属性声明 url 中 hash 属性的匹配规则列表, 当页面中的 url 的 hash 属性处于设置好的规则时, 就可以触发绑定的函数。虽然这种方式是在构建类时进行声明, 但也能通过调用 router 类提供的方法进行修改。`router` 类提供了两个用于修改 url 中的 hash 属性的匹配规则的方法, 一个是 route 方法, 另一个是 `navigate` 方法, 接下来介绍这两方法。
