@@ -159,3 +159,72 @@ HTML5 基于原有对象方法新增了两个实用的 API 方法 ：
     ---
 
     在 Backbone 框架中的 router 类中, 通过添加 `routes` 属性声明 url 中 hash 属性的匹配规则列表, 当页面中的 url 的 hash 属性处于设置好的规则时, 就可以触发绑定的函数。虽然这种方式是在构建类时进行声明, 但也能通过调用 router 类提供的方法进行修改。`router` 类提供了两个用于修改 url 中的 hash 属性的匹配规则的方法, 一个是 route 方法, 另一个是 `navigate` 方法, 接下来介绍这两方法。
+
+    #### route 方法的使用
+
+    在 router 类, route 方法的功能是动态修改 `url` 中 `hash` 属性的匹配规则和动作(action)函数, 该方法的调用格式如下 : 
+
+        objrouter.route(route, name, callback)
+
+    其中参数 `objrouter` 是实例化后的导航对象, 括号中的 `route` 参数为匹配规则内容, 该规则可以与 `routes` 属性声明时相同, 可以用正则表达式声明, 参数 `name` 为规则的名称, `callback` 表示匹配规则对应执行的动作函数(action)
+
+**示例四 : 使用 route 方法声明匹配规则和执行函数**
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Router</title>
+            <style>
+            div{
+              font-size: 13px;
+              margin: 5px 0;
+            }
+            </style>
+            <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+            <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+            <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+        </head>
+        <body>
+        <div>
+          <a href="">首页</a>
+          <a href="#search">查询列表</a>
+          <a href="#search/abc/p2">页码关键字查询</a>
+        </div>
+        <div id="divShow"></div>
+        <script>
+          var $divShow = $("#divShow");
+          var testrouter = Backbone.Router.extend({
+            routes : {
+              "" : "main",
+              "search/:key" : "search_key"
+            },
+            initialize : function(){
+              this.route("search", "search_list", function(){
+                $divShow.html("初始化时, 查询列表")
+              })
+            },
+            main : function(){
+              $divShow.html("首页");
+            },
+            search_key : function(key){
+              $divShow.html("查询关键字为 " + key + " 记录")
+            }
+          });
+          var router = new testrouter();
+          router.route("search/:key/p:page", "search_key_page", function(key, page){
+            $divShow.html("实例化, 查询关键字为 " + key + " 记录, 页码为 " + page)
+          })
+          Backbone.history.start();
+        </script>
+        </body>
+        </html>
+
+#### navigate 方法的使用
+
+在 router 类中, `navigate` 方法的功能是自动跳换到指定 `hash` 属性中, 并通过方法中的配置对象设置是否执行与 `hash` 属性匹配规则对应的动作函数, 调用格式如下 :
+
+    objrouter.navigate(fragment, option)
+
+其中, `objrouter` 参数是实例化后的导航对象; 参数 `fragment` 表示 `url` 片段, 即指定的 `hash` 属性值, `options` 参数为方法的配置对象。如果在该对应中, 将 `trigger` 属性值设置为 `true` , 将执行与 `hash` 属性匹配规则对应的动作函数, 否则不执行。
+
