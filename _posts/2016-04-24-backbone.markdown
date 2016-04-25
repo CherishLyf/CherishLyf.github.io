@@ -1,0 +1,214 @@
+layout:     post
+title:      "Backbone 实战 01"
+subtitle:   " \"Backbone 提供了一套完整的 MVC结构的 Web开发框架\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+- backbone
+
+# Backbone 实战 01
+
+## 学生管理系统
+
+---
+
+例子全部来源于《Backbone 实战》书中
+
+### 需求分析
+
+针对单页的学生管理系统, 用户有以下需求 : 
+
+- 在页面中以列表方式即时显示已增加的学生的全部信息
+- 单击"增加"按钮可以新增学生的资料信息, 并即时显示在页面中
+- 在展示信息的列表中, 双击任意一行选项进行数据编辑, 丢失焦点后数据更新
+- 在展示信息的列表中, 单击"删除"按钮可以移除指定的任一行数据
+- 新增学生资料信息时, 必须检索必填的内容是否为空, 以及年龄是否为数字
+
+### 功能实现
+
+首先写一个文件 `index.html` , 用来定义展示模板和添加各类操作的元素
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统</title>
+    <script src="http://apps.bdimg.com/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <script src="http://apps.bdimg.com/libs/backbone.js/1.0.0/backbone-min.js"></script>
+    <script src="js/app.js"></script>
+    <link rel="stylesheet" href="css/student.css">
+</head>
+<body>
+  <div id="stuManager">
+    <ul id="ulMessage">
+      <li class="li_h">
+        <span>学号</span>
+        <span>姓名</span>
+        <span>性别</span>
+        <span>总分</span>
+        <span>操作</span>
+      </li>
+    </ul>
+    <script type="text/template" id="item-template">
+      <span><%= StuId %></span>
+      <span class="show">
+        <div class="disp"><%= Name %></div>
+        <div class="edit">
+          <input type="text" name="Name" id="Name" class="inputtext" size="8">
+        </div>
+      </span>
+      <span class="show">
+        <div class="disp"><%= Sex %></div>
+        <div class="edit">
+          <select name="Sex" id="Sex">
+            <option value="男">男</option>
+            <option value="女">女</option>
+          </select>
+        </div>
+      </span>
+      <span class="show">
+        <div class="disp"><%= Score %></div>
+        <div class="edit">
+          <input type="text" name="Score" id="Score" class="inputtext" size="8">
+        </div>
+      </span>
+      <span><a href="#">删除</a></span>
+    </script>
+    <div class="input">
+      <span class="spanl">
+        学号 : <input type="text" readonly="readonly" name="StuId" id="StuId" class="inputtxt" size="15"><br>
+        姓名 : <input type="text" name="Name" id="Name" class="inputtxt" size="15">
+      </span>
+      <span class="spanr">
+        性别 : <select name="Sex">
+                <option value="男">男</option>
+                <option value="女">女</option>
+              </select><br>
+        总分 : <input type="text" name="Score" id="Score" class="inputtxt" size="8">
+      </span>
+      <p class="btn">
+        <input type="button" value="增加" class="inputbtn">
+      </p>
+      <p id="pStatus"></p>
+    </div>
+  </div>
+</body>
+</html>
+
+```
+
+其次导入一个名为 `app.js` 的 js 文件, 其内容包括构建 MVC 结构实现需求文档描述的分类功能 :
+
+```javascript
+$(function(){
+    // 构建学生对象模型
+    var Student = Backbone.Model.extend({
+        validate : function(attrData){
+            // console.dir(attrData);
+            for(var obj in attrData){
+                if(attrData[obj] == ""){
+                    return obj + "不能为空"
+                }
+                if(attrData[Score] && _.isNaN(attrData.Score)){
+                    return "分数必须是数字"
+                }
+            }
+        }
+    })
+
+    // 构建基于学生模型的集合
+    var StudentList = Backbone.Collection.extend({
+        model : Student
+    })
+
+    // 实例化一个集合对象
+    var Students = new StudentList()
+
+    // 构建基于模板的视图
+    var StudentView = Backbone.View.extend({
+        tagName : "li",
+        className : "li_c",
+        template : _.template($("#item-template").html()),
+        events : {
+            "dblclick span" : "editing",
+            "blur input, select" : "blur",
+            "click span a" : "dele"
+        },
+        editing : function(e){
+            $(e.currentTarget).removeClass("show")
+            .addClass("editing").find("input, select").focus()
+        },
+        blur : function(e){
+            var $curele = $(e.currentTarget);
+            var objData = {};
+            objData[$curele.attr("name")] = $curele.val();
+            this.model.set(objData, { "validate" : true });
+            $(e.currentTarget).parent().parent().removeClass("editing").addClass("show")
+        },
+        dele : function(){
+            this.model.destroy()
+        },
+        initialize : function(){
+            this.model.on("change", this.render, this);
+            this.model.on("destroy", this.remove, this);
+        },
+        render : function(){
+            $(this.el).html(this.template(this.model.toJSON()));
+            this.setValue();
+            return this;
+        },
+        remove : function(){
+            $(this.el).remove();
+        },
+        setValue : function(){
+            var model = this.model;
+            $(this.el).find("input, select").each(function(){
+                var $curele = $(this);
+                $curele.val(model.get($curele.attr("name")))
+            })
+        }
+    })
+
+    // 构建主页视图
+    var stuAppView = Backbone.View.extend({
+        el : $("#stuManager"),
+        events : {
+            "click #btnAdd" : "newstu"
+        },
+        // 绑定 collection 相关事件
+        initialize : function(){
+            Students.bind("add", this.addData, this);
+            $("#StuId").val(Students.length + 1)
+        },
+        newstu : function(e){
+            var stu = new Student();
+            var objData = {};
+            $("#Name, #Sex, #Score").each(function(){
+                objData[$(this).attr("name")] = $(this).val();
+            })
+            stu.bind("invalid", function(model, error){
+                $("#pStatus").show().html(error)
+            })
+            if(stu.set(objData, {"validate" : true})){
+                Students.add(stu);
+                $("#pStatus").hide()
+            }
+        },
+        addData : function(stu){
+            stu.set({ "StuId" : stu.get("StuId") || Students.length });
+            console.log(stu.get("Name"))
+            var stuView = new StudentView({ model : stu });
+            $("#ulMessage").append(stuView.render().el);
+            $("#Name, #Score").each(function(){
+                $(this).val("");
+            })
+            $("#StuId").val(Students.length+1);
+        }
+    })
+
+    // 实例化一个主页视图对象
+    var app = new stuAppView()
+})
+```
