@@ -1,0 +1,119 @@
+---
+layout:     post
+title:      "笨方法学 Python"
+subtitle:   " \"笨方法学 Python 学习笔记\""
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - backbone
+---
+
+# 笨方法学 Python
+
+最近看了一下《笨方法学Python》这本书, 在看书的过程中做一些简单的笔记。
+
+
+
+**UTF-8 编码**
+
+```python
+# -*- coding : utf-8 -*-
+```
+
+
+
+**%r 和 %s 有什么不同？**
+
+%r 用来显示 debug 比较好, 因为他会显示变量的原始数据(raw data), 而其他的符号是用来向用户输出的
+
+
+
+**转义序列**
+
+下面列出了 Python 支持的所有转义序列
+
+|    转义符    |          功能           |
+| :-------: | :-------------------: |
+|    \\    |          反斜杠          |
+|    \\'    |          单引号          |
+|    \\"    |          双引号          |
+|    \a     |          响铃符          |
+|    \b     |          退格符          |
+|    \f     |          进纸符          |
+|    \n     |          换行符          |
+| \N{name}  |    Unicode 数据库的字符名    |
+|    \r     |          回车符          |
+|    \t     |         水平制表符         |
+|  \uxxxx   | 值为 16 位十六进制 xxxx 的字符  |
+| \UXXXXXXX | 值为 32 位十六进制值 xxxx 的字符 |
+|    \v     |         垂直制表符         |
+|   \ooo    |    值为八进制值 ooo 的字符     |
+|   \xhh    |    值为十六进制数 hh 的字符     |
+|           |                       |
+
+`“”“`  之间可以引用任意多行文字
+
+```python
+something = """
+I'm learning python.
+It's very interesting.
+"""
+```
+
+
+
+**input() 和 raw_input() 的区别**
+
+`raw_input()` 直接读取控制台的输入（任何类型的输入它都可以接收）; `input()` 函数会把你输入的东西当作 Python 代码处理, 这么做会有安全问题, 应该避免使用这个函数。
+
+
+
+**pydoc 命令的作用**
+
+ 查看函数介绍, 比如查看  `raw_input()` 的函数介绍
+
+```python
+Linux:		pydoc raw_input
+Windows:	python -m pydoc raw_input
+```
+
+
+
+**import 语句, argv 和 解包**
+
+`import` 是将 python 的功能引入你的脚本的方法, 他真正的名称为 "模组(modules)", 或者叫做 "库(libraries)"
+
+`argv` 是所谓的 "参数变量(argument variable)"
+
+"解包(unpack)" 就是把每个参数赋予一个变量名, 比如 :
+
+```python
+from sys import argv
+
+script, first, second, third = argv
+
+print "The script is called :", script
+print "Your first variable is :", first
+print "Your second variable is :", second
+print "Your third variable is :", third 
+```
+
+
+
+**读写文件**
+
+- close - 关闭文件。跟编辑器的 文件 -> 保存.. 一个意思
+- open - 打开文件
+- read - 读取文件内容。你可以把结果赋值给一个变量。
+- readline - 读取文件中的一行。
+- truncate - 清空文件
+- write(stuff) - 将 stuff 写入文件 
+
+`open(name[, mode[, buffering])` 
+
+文件访问的模式有 3 种 :
+
+`'w'` 写入模式(write), `'r'` 读取模式(read), `'a'` 表示追加(append), 如果只写 `open(filename)` 默认以 `'r'` 方式打开。
+
+
+
