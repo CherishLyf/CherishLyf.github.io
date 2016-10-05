@@ -313,3 +313,209 @@ numbersArray.splice(from, 2)  ;  // will return [5]
 ```
 
 注意传给splice的索引参数不要是负数，当是负数时，会从数组结尾处删除元素。
+
+### 31. 用 JSON 来序列化与反序列化
+
+```
+var person = {name: 'Saad', age: 26, department: {ID: 15, name: 'R&D'}};
+var stringFromPerson = JSON.stringify(person);
+
+/* stringFromPerson 结果为 "{"name":"Saad","age":26,"department":{"ID":15,"name":"R&D"}}"   */
+
+var personFromString = JSON.parse(stringFromPerson);
+/* personFromString 的值与 person 对象相同  */
+```
+
+### 32. 不要使用 eval() 或者函数构造器
+
+eval()和函数构造器（Function consturctor）的开销较大，每次调用，JavaScript引擎都要将源代码转换为可执行的代码。
+
+```
+var func1 = new Function(functionCode);
+var func2 = eval(functionCode);
+```
+
+### 33. 避免使用 with()
+
+使用with()可以把变量加入到全局作用域中，因此，如果有其它的同名变量，一来容易混淆，二来值也会被覆盖。
+
+### 34. 不要对数组使用 for-in
+
+避免:
+
+```
+var sum = 0;
+for (var i in arrayNumbers) {
+  sum += arrayNumbers[i]
+}
+```
+
+而是:
+
+```
+var sum = 0;
+var (var i = 0, len = arrayNumbers.length; i < len ; i++) {
+  sum += arrayNumbers[i];
+}
+```
+
+### 35. 传给 setInterval() 和 setTimeout() 时使用函数而不是字符串
+
+如果传给setTimeout()和setInterval()一个字符串，他们将会用类似于eval方式进行转换，这肯定会要慢些，因此不要使用：
+
+```
+setInterval('doSomethingPeriodically()', 1000);  
+setTimeout('doSomethingAfterFiveSeconds()', 5000);
+```
+
+而是:
+
+```
+setInterval(doSomethingPeriodically, 1000);  
+setTimeout(doSomethingAfterFiveSeconds, 5000);
+```
+
+### 36. 使用 switch/case 代替一大叠的 if/else
+
+当判断有超过两个分支的时候使用switch/case要更快一些，而且也更优雅，更利于代码的组织，当然，如果有超过10个分支，就不要使用switch/case了。
+
+### 37. 在 switch/case 中使用数字区间
+
+其实，switch/case 中的 case 的条件，还可以这样写：
+
+```
+function getCategory(age) {
+  var category = '';
+  switch (true) {
+    case isNaN(age):
+      category = 'not an age'
+      break;
+    case (age >= 50):
+      category = 'Old';
+      break;
+    case (age <= 20):
+      category = 'Bady';
+      break;
+    default:
+      category = 'Young'
+      break;
+  };
+
+  return category
+}
+
+getCategory(5);   // return 'Bady'
+
+```
+
+### 38. 使用对象作为对象的原型
+
+下面这样，便可以给定对象作为参数，来创建以此为原型的新对象：
+
+```
+function clone(object) {  
+    function OneShotConstructor(){};
+    OneShotConstructor.prototype = object;  
+    return new OneShotConstructor();
+}
+clone(Array).prototype ;  // []
+```
+
+### 39. HTML 字符转换函数
+
+```
+function escapeHTML(text) {  
+    var replacements= {"<": "&lt;", ">": "&gt;","&": "&amp;", "\"": "&quot;"};                      
+    return text.replace(/[<>&"]/g, function(character) {  
+        return replacements[character];  
+    });
+}
+```
+
+### 40. 不要在循环内部使用try-catch-finally
+
+try-catch-finally中catch部分在执行时会将异常赋给一个变量，这个变量会被构建成一个运行时作用域内的新的变量。
+
+
+切忌：
+
+```
+var object = ['foo', 'bar'], i;  
+for (i = 0, len = object.length; i <len; i++) {  
+    try {  
+        // do something that throws an exception
+    }  
+    catch (e) {   
+        // handle exception  
+    }
+}
+```
+
+应该:
+
+```
+var object = ['foo', 'bar'], i;  
+try {
+    for (i = 0, len = object.length; i <len; i++) {  
+        // do something that throws an exception
+    }
+}
+catch (e) {   
+    // handle exception  
+}
+```
+
+### 41. 使用 XMLHttpRequests 时注意设置超时
+
+XMLHttpRequests在执行时，当长时间没有响应（如出现网络问题等）时，应该中止掉连接，可以通过setTimeout()来完成这个工作：  
+
+```
+var xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function () {
+  if(this.readyState == 4) {
+    clearTimeout(timeout)
+    // do something with response data
+  }
+}
+
+var timeout = setTimeout( function () {  
+    xhr.abort(); // call error callback  
+}, 60*1000 /* timeout after a minute */ );
+xhr.open('GET', url, true);  
+xhr.send();
+```
+
+### 42. 处理 WebSocket 的超时
+
+通常情况下，WebSocket连接创建后，如果30秒内没有任何活动，服务器端会对连接进行超时处理，防火墙也可以对单位周期没有活动的连接进行超时处理。
+
+为了防止这种情况的发生，可以每隔一定时间，往服务器发送一条空的消息。可以通过下面这两个函数来实现这个需求，一个用于使连接保持活动状态，另一个专门用于结束这个状态。
+
+```
+var timerID = 0;
+function keepAlive() {
+    var timeout = 15000;  
+    if (webSocket.readyState == webSocket.OPEN) {  
+        webSocket.send('');  
+    }  
+    timerId = setTimeout(keepAlive, timeout);  
+}  
+function cancelKeepAlive() {  
+    if (timerId) {  
+        cancelTimeout(timerId);  
+    }  
+}
+```
+
+### 43. 时间注意原始操作符比函数调用快，使用 VanillaJS
+
+比如一般不要这样:
+
+```
+var min = Math.min(a,b);
+A.push(v);
+```
+
+### 44. 开发时注意代码结构，上线前检查并压缩JavaScript代码
+
+可以使用JSLint或JSMin等工具来检查并压缩代码。
