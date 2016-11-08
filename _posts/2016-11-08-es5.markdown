@@ -1,0 +1,78 @@
+---
+layout:     post
+title:      "ECMAScript5 特性"
+subtitle:   "ECMAScript5 特性"
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - js
+---
+
+[ES5特性](http://pij.robinqu.me/JavaScript_Core/ECMAScript/es5.html)
+
+# ECMAScript5 特性
+
+将简单列举ES5的核心特性。ES5多半是扩展原生对象的功能，让Object、Array、Function更加强大。其他的特性包括strict mode和一下期待已久的工具方法（例如JSON.parse等）.
+
+ES5的大部分特性都在主流浏览器（IE9+）中支持了。而且大部分特性，都可以通过JavaScript垫片(pollyfill)在运行时环境实现。
+
+## Object
+
+所有对象中, 如果 o 不是 Object 类型, 将会抛出一个 TypeError 异常.
+
+[Object.getPrototypeOf(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/GetPrototypeOf) <br/>
+返回指定对象的原型.(也就是该对象内部属性[Prototype]的值)
+
+[Object.getOwnPropertyDescriptor(o,p)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptors) <br/>
+返回指定对象上一个自有属性对应的属性描述符. (自有属性指的是直接赋予该对象的属性, 不需要从原型链上进行查找的属性)
+
+[Object.getOwnPropertyNames(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames) <br/>
+返回一个由指定对象的所有自身属性的属性名(包括不可枚举属性)组成的数组.
+
+[Object.create(o,p)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/create) <br/>
+以给定对象 o 为 prototype 创建一个新的对象并返回. 该方法创建一个拥有指定原型和若干个指定属性的对象.
+
+例子: 使用 `Object.create` 实现类式继承
+
+```
+// Shape - superclass
+function Shape () {
+  this.x = 0;
+  this.y = 0;
+}
+
+Shape.prototype.move = function (x, y) {
+  this.x += x;
+  this.y += y;
+  console.log('Shape moved.')
+}
+
+// Rectangle - subclass
+function Rectangle () {
+  Shape.call(this);   // call super constructor
+}
+
+Rectangle.prototype = Object.create(Shape.prototype)
+
+var rect = new Rectangle()
+
+rect instanceof Rectangle   // true
+rect instanceof Shape   // true
+
+rect.move(1, 1);  // "Shape moved"
+```
+
+[Object.defineProperty(o,p,attrs)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty)) <br/>
+该方法会直接在一个对象上定义一个新属性, 或者修改一个已经存在的属性, 并返回这个对象.
+
+[Object.defineProperties(o,props)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties)) <br/>
+该方法在一个对象上添加或者修改多个自有属性, 并返回该对象.
+
+[Object.seal(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/seal) <br/>
+该方法可以让一个对象密封, 并返回被密封后的对象. 密封对象是指那些不能添加新的属性, 不能删除已有属性, 以及不能删除已有属性的可枚举性, 可配置性, 可写性, 但可能修改已有属性的值的对象.
+
+[Object.freeze(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze) <br/>
+该方法可以冻结一个对象, 冻结指的是不能向这个对象添加新的属性, 不能修改其已有属性的值, 不能删除已有属性, 以及不能修改该对象已有属性的可枚举行, 可配置性, 可写性. 也就是说, 这个对象永远不是可变的, 该方法返回一个被冻结的对象.
+
+[Object.preventExtensions(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/preventExtensions) <br/>
+该方法让一个对象变的不可扩展，也就是永远不能再添加新的属性.
