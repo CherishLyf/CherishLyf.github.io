@@ -18,6 +18,8 @@ ES5的大部分特性都在主流浏览器（IE9+）中支持了。而且大部�
 
 ## Object
 
+---
+
 所有对象中, 如果 o 不是 Object 类型, 将会抛出一个 TypeError 异常.
 
 [Object.getPrototypeOf(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/GetPrototypeOf) <br/>
@@ -76,3 +78,181 @@ rect.move(1, 1);  // "Shape moved"
 
 [Object.preventExtensions(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/preventExtensions) <br/>
 该方法让一个对象变的不可扩展，也就是永远不能再添加新的属性.
+
+[Object.isSealed(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isSealed) <br/>
+该方法判断一个对象是否是密封的.
+
+[Object.isFrozen(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isFrozen) <br/>
+该方法判断一个对象是否被冻结.
+
+[Object.keys(o)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/keys) <br/>
+该方法会返回一个由给定对象的所有枚举自身属性的属性名组成的数组, 数组中属性名的排序和使用 `for-in` 循环遍历该对象时返回的顺序一致(两者主要区别是 `for-in` 还会遍历出一个对象从其原型链上继承到的枚举属性).
+
+例子:
+
+```
+var arr = ["a", "b", "c"]
+alert(Object.keys(arr))   // 弹出 "0,1,2"
+
+// 类数组对象
+var obj = { 0 : "a", 1 : "b", 2 : "c"};
+alert(Object.keys(obj)); // 弹出"0,1,2"
+
+//具有随机键排序的数组类对象
+var an_obj = { 100: 'a', 2: 'b', 7: 'c' };
+console.log(Object.keys(an_obj)); // console: ['2', '7', '100']
+```
+
+[Object.prototype.isPrototypeOf(v)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isPrototypeOf) <br/>
+该方法用于测试一个对象是否存在于另一个对象的原型链上.
+
+[Object.prototype.propertyIsEnumerable(p)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/propertyIsEnumerable) <br/>
+该方法返回一个布尔值, 表明指定的属性名是否是当前对象的可枚举的自身属性.
+
+## Array
+
+---
+
+[Array.isArray(a)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray) <br/>
+该方法用来判断某个值是否为 `Array`, 如果是, 则返回 `true`, 否则返回 `false`.
+
+[Array.prototype.indexOf(e,i)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf) <br/>
+该方法返回给定元素能找在数组中找到的第一个索引值，否则返回-1.
+
+例子1: 使用 `indexOf`
+
+```
+var array = [2, 5, 9];
+array.indexOf(2);     // 0
+array.indexOf(7);     // -1
+array.indexOf(9, 2);  // 2
+array.indexOf(2, -1); // -1
+array.indexOf(2, -3); // 0
+```
+
+例子2: 找出指定元素出现的所有位置
+
+```
+var indices = []
+var array = ['a', 'b', 'a', 'c', 'a', 'd'];
+var element = 'a';
+var idx = arr.indexOf(element)
+while (idx != -1) {
+  indices.push(idx)
+  idx = array.indexOf(element, idx + 1)
+}
+console.log(indices)
+```
+
+例子3: 判断一个元素是否在数组里, 不在则更新数组
+
+```
+function updateVegetablesCollection (veggies, veggie) {
+    if (veggies.indexOf(veggie) === -1) {
+        veggies.push(veggie);
+        console.log('New veggies collection is : ' + veggies);
+    } else if (veggies.indexOf(veggie) > -1) {
+        console.log(veggie + ' already exists in the veggies collection.');
+    }
+}
+
+var veggies = ['potato', 'tomato', 'chillies', 'green-pepper'];
+
+// New veggies collection is : potato,tomato,chillies,green-papper,spinach
+updateVegetablesCollection(veggies, 'spinach');
+// spinach already exists in the veggies collection.
+updateVegetablesCollection(veggies, 'spinach');
+```
+
+[Array.prototype.lastIndexOf(e,i)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf) <br/>
+该方法返回指定元素(也即有效的 JavaScript 值或变量)在数组中的最后一个的索引, 如果不存在则返回 -1. 从数组的后面向前查找, 从 fromIndex 处开始.
+
+例子1: 使用 `lastIndexOf`
+
+```
+var array = [2, 5, 9, 2];
+var index = array.lastIndexOf(2);
+// index is 3
+index = array.lastIndexOf(7);
+// index is -1
+index = array.lastIndexOf(2, 3);
+// index is 3
+index = array.lastIndexOf(2, 2);
+// index is 0
+index = array.lastIndexOf(2, -2);
+// index is 0
+index = array.lastIndexOf(2, -1);
+// index is 3
+```
+
+例子2: 查找所有元素
+
+```
+var indices = [];
+var array = ['a', 'b', 'a', 'c', 'a', 'd'];
+var element = 'a';
+var idx = array.lastIndexOf(element);
+
+while (idx != -1) {
+  indices.push(idx);
+  idx = (idx > 0 ? array.lastIndexOf(element, idx - 1) : -1);
+}
+
+console.log(indices);
+// [4, 2, 0];
+```
+
+[Array.prototype.every(t,c)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/every) <br/>
+该方法测试数组的所有元素是否都通过了指定函数的测试. `callback` 被调用时传入三个参数: 元素值, 元素索引, 原数组
+
+例子: 检测所有数组元素的大小
+
+```
+function isBigEnough (element, index, array) {
+  return (element >= 10)
+}
+
+var passed = [12, 5, 8, 130, 44].every(isBigEnough)
+// passed is false
+
+passed = [12, 54, 18, 130, 44].every(isBigEnough)
+// passed is true
+```
+
+[Array.prototype.some(t,c)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/some) <br/>
+该方法测试数组中的某些元素是否通过了指定函数的测试. `callback` 被调用时传入三个参数: 元素的值，元素的索引，被遍历的数组.
+
+例子: 测试数组元素的值
+
+```
+function isBigEnough(element, index, array) {
+  return (element >= 10)
+}
+var passed = [2, 5, 8, 1, 4].some(isBigEnough)
+// passed is false
+
+passed = [12, 5, 8, 1, 4].some(isBigEnough)
+// passed is true
+```
+
+[Array.prototype.forEach(f,c)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach) <br/>
+该方法对数组的每个元素执行一次提供的函数(回调函数). `callback` 函数会被依次传入三个参数: 数组当前项的值, 数组当前项的索引, 数组对象本身.
+
+[Array.prototype.map(f,c)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/map) <br/>
+该方法返回一个由原数组中的每个元素调用一个指定方法后的返回值组成的新数组. `callback` 函数会被依次传入三个参数: 数组当前项的值, 数组当前项的索引, 数组对象本身.
+
+[Array.prototype.filter(f,c)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/filter) <br/>
+该方法使用指定的函数测试所有元素，并创建一个包含所有通过测试的元素的新数组. `callback` 函数会被依次传入三个参数: 数组当前项的值, 数组当前项的索引, 数组对象本身.
+
+[Array.prototype.reduce(r,v)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce) <br/>
+该方法接收一个函数作为累加器 (accumulator),数组中的每个值（从左到右）开始合并，最终为一个值. `callback` 函数会被依次传入四个参数: 上一次调用回调返回的值，数组中当前被处理的元素, 当前元素在数组中的索引, 调用 reduce 的数组.
+
+[Array.prototype.reduceRight(r,v)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce) <br/>
+该方法接受一个函数作为累加器(accumulator), 让每个值(从右到左，亦即从尾到头)缩减为一个值。(与 reduce() 的执行方向相反).
+
+## String
+
+---
+
+[String.prototpye.trim](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce) <br/>
+方法会删除一个字符串两端的空白字符. 在这个字符串里的空格包括所有的空格字符 (space, tab, no-break space 等)以及所有的行结束符.
