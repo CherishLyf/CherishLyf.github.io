@@ -212,3 +212,71 @@ var sosoMap = {
 }
 ```
 这个例子假设每个地图 API 展示方法都是 `show`，实际开发中不会如此顺利，还需用到适配器模式来解决问题。
+
+## 封装
+
+### 封装数据
+
+Javascript 没有 `private`，`public` 等关键字，只能通过变量的作用域来实现封装。
+
+除了 ES6 提供的 `let`，我们一般通过函数来创建作用域：
+
+```
+var myObject = (function(){
+  var _name = 'sven';     // 私有 (private) 变量
+  return {
+    getName: function () {    // 公开 (public) 方法
+      return _name
+    }
+  }
+})();
+
+console.log(myObject.getName())   // 输出 'sven'
+console.log(myObject._name)   // 输出 undefined
+```
+
+## 原型模式和基于原型继承的 Javascript 对象系统
+
+### 使用克隆的原型模式
+
+比如我们编写一个飞机大战的网页游戏，飞机具有分身技能，分身后创建一个一模一样的飞机。这时候就要用到原型模式，原型模式的关键在于语言是否提供了 `clone` 方法, ES5 提供了 `Object.create` 方法用来克隆对象。
+
+```
+var Plane = function () {
+  this.blood = 100;
+  this.attackLevel = 1;
+  this.defenseLevel = 1;
+}
+
+var plane = new Plane();
+plane.blood = 500;
+plane.attackLevel = 10;
+plane.defenseLevel = 7;
+
+var clonePlane = Object.create(plane)
+console.log(clonePlane);    // {blood: 500, attackLevel: 10, defenseLevel: 7}
+```
+
+不支持 `Object.create` 方法的浏览器，可以使用以下代码：
+
+```
+Object.create = Object.create || function (obj) {
+  var F = function () {}
+  F.prototype = obj
+
+  return new F()
+}
+```
+
+### JavaScript 中的原型继承
+
+圆形编程的基本规则：
+
+- 所有数据都是对象。
+- 要得到一个对象，不是通过实例化类，而是找到一个对象作为原型并克隆它。
+- 对象会记住它的原型。
+- 如果对象无法响应某个请求，它会把这个请求委托给原型。
+
+1.所有数据都是对象
+
+JavaScript 中，绝大部分数据都是对象。
