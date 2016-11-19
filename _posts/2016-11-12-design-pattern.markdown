@@ -1,20 +1,18 @@
 ---
 layout:     post
-title:      "【读书笔记】 Javascript 设计模式与开发实践"
-subtitle:   "《Javascript 设计模式与开发实践》读书笔记"
+title:      "【读书笔记】 面向对象的 JavaScript"
+subtitle:   "《Javascript 设计模式与开发实践》读书笔记 第一部分 --- 基础知识"
 author:     "刘一凡"
 header-img: "img/post-bg-2015.jpg"
 tags:
     - js
 ---
 
-# 第一部分 基础知识
-
-## 面向对象的 JavaScript
+# 面向对象的 JavaScript
 
 Javascript 没有传统面向对象语言的类式继承，而是通过原型委托的方式实现对象与对象之间的继承。
 
-### 动态语言类型和鸭子类型
+## 动态语言类型和鸭子类型
 
 编程语言按照数据类型可分为，静态类型语言和动态类型语言。
 
@@ -277,6 +275,29 @@ Object.create = Object.create || function (obj) {
 - 对象会记住它的原型。
 - 如果对象无法响应某个请求，它会把这个请求委托给原型。
 
-1.所有数据都是对象
+### 原型继承的未来
 
-JavaScript 中，绝大部分数据都是对象。
+ES6 提供了新的 `Class` 语法。通过类创建对象：
+
+```
+Class Animal {
+  constructor (name) {
+    this.name = name;
+  }
+  getName () {
+    return this.name
+  }
+}
+
+Class Dog extend Animal {
+  constructor (name) {
+    super(name)
+  }
+  speak () {
+    return 'woof'
+  }
+}
+
+var dog = new Dog('Scamp')
+console.log(dog.getName() + 'says' + dog.speak())
+```
