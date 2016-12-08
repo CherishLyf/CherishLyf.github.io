@@ -154,3 +154,104 @@ extent.call()
 ```
 
 命令模式的意图是把请求封装为一个对象，从而分离请求的发起者和请求的接收者（执行者）之间的耦合。在命令对象执行前，可以预先往命令对象中植入命令的接收者。
+
+在面向对象版本的命令模式中，预先植入的命令接收者被当成对象的属性保存起
+来；而在闭包版本的命令模式中，命令接收者会被封闭在闭包形成的环境中，代码如下：
+
+```
+ var Tv = {
+   open: function () {
+     console.log('打开电视机')
+   },
+   close: function () {
+     console.log('关上电视机')
+   }
+ }
+
+var createCommand = function (receiver) {
+
+  var execute = function () {
+    return receiver.open()    // 执行命令，打开电视机
+  }
+
+  var undo = function () {
+    return receiver.close()   // 执行命令，关闭电视机
+  }
+
+  return {
+    execute: execute,
+    undo: undo
+  }
+}
+
+var setCommand = function (command) {
+  document.getElementById('execute').onclick = function () {
+    command.execute()   // 输出: 打开电视机
+  }
+  document.getElementById('undo').onclick = function () {
+    command.undo()      // 输出: 关闭电视机
+  }
+}
+```
+
+## 高阶函数
+
+高阶函数至少满足下列条件之一的函数：
+
+- 函数可以作为参数被传递
+- 函数可以作为返回值输出
+
+### 函数作为参数传递
+
+1.回调函数
+
+在 AJAX 异步请求中，回调函数的使用非常频繁。最常见的方案就是把 callback 函数当作参数发起 ajax 请求，请求完成后执行 callback 函数。
+
+```
+var getUserInfo = function (userId, callback) {
+  $.ajax('http://xxx.com/getUserInfo?' + userId, function (data) {
+    if (typeof callback === 'function') {
+      callback(data)
+    }
+  })
+}
+
+getUserInfo(13157, function (data) {
+    alert(data.userName)
+})
+```
+
+回调函数的应用不仅在异步请求中，当一个函数不适合执行一些请求时，可以把这个请求封装成一个函数，并把它作为参数传递给另外一个函数。
+
+比如，我们想在页面中创建 100 个 div 节点，然后把节点都设置为隐藏。下面是一种编写代码的方式：
+
+```
+var appendDiv = function () {
+  for (var i = 0; i < 100; i++) {
+    var div = document.createElement('div')
+    div.innerHTML = i
+    document.body.appendChild(div)
+    div.style.display = 'none'
+  }
+}
+
+appendDiv()
+```
+`div.style.display = 'none'` 的逻辑硬编码在这里是不合理的，我们把这部分抽离出来，用回调函数的形式传入 `appendDiv`
+
+```
+var appendDiv = function (callback) {
+  for (var i = 0; i < 100; i++) {
+    var div = document.createElement('div')
+    div.innerHTML = i
+    document.body.appendChild(div)
+    if (typeof callback === 'function') {
+      callback(div)
+    }
+  }
+}
+
+appendDiv(function(node){
+  node.style.display = 'none'
+})
+```
