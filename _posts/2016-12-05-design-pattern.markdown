@@ -255,3 +255,285 @@ appendDiv(function(node){
   node.style.display = 'none'
 })
 ```
+
+2.`Array.prototype.sort`
+
+`Array.prototype.sort` 接受一个函数作为参数，这个函数里面封装了数组元素的排序规则。
+
+```
+// 从小到大
+
+[1, 4, 3].sort(function(a, b){
+  return a - b
+})
+
+// 输出 [1, 3, 4]
+
+// 从大到小的排序
+
+[1, 4, 3].sort(function(a, b){
+  return b - a
+})
+
+// 输出 [4, 3, 1]
+```
+
+### 函数作为返回值输出
+
+相比把函数当作参数传递，函数当作返回值输出的应用场景也许更多，也更能体现函数式编
+程的巧妙。
+
+1.判断数据的类型
+
+比如 `Object.prototype.toString.call([1,2,3])` 总是返回 "[object Array]"，而
+`Object.prototype.toString.call('str')` 总是返回 "[object String]"。所以我们可以编写一系列的isType 函数。代码如下：
+
+```
+var isString = function (obj) {
+  return Object.prototype.toString.call(obj) === '[object String]'
+}
+
+var isArray = function (obj) {
+  return Object.prototye.toString.call(obj) === '[object Array]'
+}
+
+var isNumber = function (obj) {
+  return Object.prototype.toString.call(obj) === '[object Number]'
+}
+```
+
+我们大部分代码都是相同的，不同的只是 `Object.prototype.toString.call(obj)` 返回的字符串。为了避免多余的代码，我们把这些字符串作为参数提前传入 `isType` 函数。
+
+```
+var isType = function (type) {
+  return function (obj) {
+    return Object.prototype.toString.call(obj) === '[object ' + type + ']'
+  }
+}
+
+var isString = isType('String')
+var isArray = isType('Array')
+var isNumber = isType('Number')
+
+console.log(isArray([1, 2, 3]))   // 输出 true  
+```
+我们还可以通过循环语句，来批量注册这些 isType 函数:
+
+```
+var Type = {}
+for (var i = 0, type; type = ['String', 'Array', 'Number'][i++] ) {
+  (function(type){
+    Type['is' + type] = function (obj) {
+      return Object.prototype.toString.call(obj) === '[object ' + type + ']'
+    }
+  })(type)
+}
+
+Type.isArray([])        // 输出 true
+Type.isString('str')    // 输出 true
+```
+
+2.getSingle
+
+下面是一个单例模式的例子：
+
+```
+var getSingle = function (fn) {
+  var ret;
+  return funtion () {
+    return ret || (ret = fn.apply(this, arguments))
+  }
+}
+```
+
+这个高阶函数的例子，既把函数当做参数传递，又让函数执行后返回了另外的一个函数。下面看下这个函数的效果：
+
+```
+var getScript = getSingle(function(){
+  return document.createElement('script')
+})
+
+var script1 = getScript()
+var script2 = getScript()
+
+alert(script1 === script2)    // 输出 true
+```
+
+### 高阶函数实现 AOP
+
+AOP(面向切面编程)主要把一些跟核心业务逻辑无关的功能抽离出来，这些跟业务逻辑无关的功能通常包括日志统计、安全控制、异常处理等。
+
+通常，在 Javascript 中实现 AOP，都是指把一个函数“动态织入”到另外的函数中，代码如下：
+
+```
+Function.prototype.before = function (beforefn) {
+  var __self = this   // 保存原函数的引用
+
+  return function () {    // 返回包含了原函数和新函数的'代理'函数
+    beforefn.apply(this, arguments)   // 执行新函数，修正 this
+    return __self.apply(this, arguments)    // 执行原函数
+  }
+}
+
+Function.prototype.after = function (afterfn) {
+  var __self = this
+
+  return function () {
+    var ret = __self.apply(this, arguments)
+    afterfn.apply(this, arguments)
+    return ret
+  }
+}
+
+var func = function () {
+  console.log(2)
+}
+
+func = func.before(function(){
+    console.log(1)
+}).after(function(){
+  console.log(3)
+})
+
+func()    // 依次输出 1, 2 ,3
+
+```
+
+这种使用 AOP 的方式给函数添加职责，也是 JavaScript 语言中一种非常特别和巧妙的装饰者模式实现。
+
+### 高阶函数的其他应用
+
+1.currying
+
+函数柯里化 (function currying)。 `currying` 又称为部分求值。一个 curring 函数首先会接受一些函数，接受这些函数后，该函数并不会立即求值，而是继续返回另外一个函数，刚才传入的参数在函数形成的闭包中被保存起来。待到真正需要求值的时候，之前传入的所有参数都会被一次性用于求值。
+
+下面个例子来理解 currying。
+
+假设我们要编写计算每月开销的函数。在每天结束之前，我们都要记录今天花了多少钱：
+
+```
+var monthlyCost = 0
+
+var cost = function (money) {
+  monthlyCost += money
+}
+
+cost(100)   // 第一天开销
+cost(200)   // 第二天开销
+cost(300)   // 第三天开销
+```
+
+这段代码可以看出，每天结束我们都会记录并计算今天为止花掉的钱。其实我们并不关心每天花了多少，只想知道月底的时候花了多少。
+
+下面代码有助于我们理解其思想：
+
+```
+var cost = (function () {
+  var args = []
+
+  return function () {
+    if (arguments.length === 0) {
+      var money = 0
+      for (var i = 0, l = args.length; i < l; i++) {
+        money += args[i]
+      }
+      return money
+    } else {
+      [].push.apply(args, arguments)
+    }
+  }
+})()
+
+cost(100)   // 未真正求值
+cost(200)   // 未真正求值
+cost(300)   // 未真正求值
+
+console.log(cost())   // 求值并输出: 600
+```
+
+接下来我们编写一个通用的 `function curring() {}`，`function curring() {}` 接受一个参数，既要被 `currying` 的函数。在这个例子中，这个函数的作用遍历本月每天的开销并求出他们的总和。
+
+```
+var curring = function (fn) {
+  var args = []
+
+  return function () {
+    if (arguments.length === 0) {
+      return fn.apply(this, args)
+    } else {
+      [].push.apply(args, arguments)
+      return arguments.callee
+    }
+  }
+}
+
+var cost = (function(){
+    var money = 0;
+
+    return function () {
+      for (var i = 0, l = arguments.length; i < l; i++) {
+        money += arguments[i]
+      }
+      return money
+    }
+})();
+
+var cost = currying(cost)   // 转化成 currying 函数
+
+cost(100)   // 未计算
+cost(200)   // 未计算
+cost(300)   // 未计算
+
+alert(cost())   // 求值并输出 600
+```
+
+2.uncurrying
+
+3.函数节流
+
+函数被频繁调用的场景：
+
+- `window.onresize` 事件
+- `mousemove` 事件
+- 上传进度
+
+函数节流的原理：
+
+上面提到的场景，都是函数被处罚的频率太高了，这就需要我们按照时间段来忽略掉一些事件请求。
+
+函数节流的实现：
+
+关于函数节流的代码实现有许多种，下面的 `throttle` 函数的原理，将即将被执行的函数用 `setTimeout` 延迟一段时间执行。`throttle` 函数接受 2 个参数，第一个为需要被延迟执行的函数，第二个参数为延时执行的时间。
+
+```
+var throttle = function (fn, interval) {
+
+  var __self = fn,    // 保存需要被延迟执行的函数引用
+      timer,          // 定时器
+      firstTime = true;   // 是否是第一次调用
+
+  return function () {
+    var args = arguments,
+        __me = this
+
+    if (firstTime) {    // 如果是第一次调用，不需要延迟执行
+      __self.apply(__me, args)
+      return firstTime = false
+    }
+
+    if (timer) {    // 如果定时器还在，说明前一次延时执行还没完成
+      return false
+    }
+
+    timer = setTimeout(function () {    // 延迟一段时间执行
+      clearTimeout(timer)
+      timer = null
+      __self.apply(__me, args)
+    }, interval || 500)
+  }
+}
+
+window.onresize = throttle(function(){
+  console.log(1)
+}, 500)
+```
