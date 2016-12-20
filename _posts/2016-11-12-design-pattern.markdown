@@ -6,6 +6,7 @@ author:     "刘一凡"
 header-img: "img/post-bg-2015.jpg"
 tags:
     - js
+    - 设计模式
 ---
 
 # 面向对象的 JavaScript

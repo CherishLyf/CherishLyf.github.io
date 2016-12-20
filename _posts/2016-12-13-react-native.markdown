@@ -5,7 +5,7 @@ subtitle:   "搭配环境时遇到的坑"
 author:     "刘一凡"
 header-img: "img/post-bg-2015.jpg"
 tags:
-    - js
+    - ReactNative
 ---
 
 # 环境搭建
