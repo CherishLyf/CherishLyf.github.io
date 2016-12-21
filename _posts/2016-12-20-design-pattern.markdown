@@ -193,3 +193,247 @@ var calculateBonus = function (level, salary) {
 console.log(calculateBonus('S', 20000))   // 输出 80000
 console.log(calculateBonus('A', 10000))   // 输出 30000
 ```
+
+## 表单验证
+
+在一个 Web 项目中，注册、登陆、修改用户信息等功能的实现的都离不开提交表单。
+
+假设我们正在编写一个注册的页面，在点击注册之前，有几条校验逻辑。
+
+- 用户名不能为空
+- 密码长度不能少于 6 位
+- 手机号码必须符号格式
+
+### 表单验证的第一个版本
+
+第一个版本没有引入策略模式，代码如下：
+
+```
+<html>
+  <body>
+    <form action="#" id="registerForm" method="post">
+      请输入用户名: <input type="text" name="userName" />
+      请输入密码: <input type="text" name="password" />
+      请输入手机号码: <input type="text" name="phoneNumber">
+      <button>提交</button>
+    </form>
+    <script>
+      var registerForm = document.getElementById('registerForm')
+
+      registerForm.onsubmit = function () {
+        if (registerForm.userName.value === '') {
+          alert('用户名不能为空')
+          return false
+        }
+
+        if (registerForm.password.value.length < 6) {
+          alert('密码长度不能少于6位')
+          return false
+        }
+
+        if ( !/(^1[3|5|8][0-9]{9}$)/.test(registerForm.phoneNumber.value)){
+          alert('手机号码格式不正确')
+          return false
+        }
+      }
+    </script>
+  </body>
+</html>
+```
+
+这是一种常见的编码方式，缺点跟计算奖金的最初版本一样。
+
+- onsubmit 函数庞大，包含很多 if-else 分支
+- 缺乏弹性，如果增加一种新的校验规则，必须深入 onsubmit 的内部实现，这是违反开放-封闭原则的
+- 算法复用性差，如果在程序中另外添加一个表单，那么我们很有可能将这些校验逻辑复制的满天飞
+
+### 用策略模式重构表单校验
+
+下面我们使用策略模式重构表单验证代码，很显然我们要把这些检验逻辑都封装成策略对象：
+
+```
+var strategys = {
+  isNonEmpty: function (value, errorMsg) {  // 不能为空
+    if ( value === '' ) {
+      return errorMsg
+    }
+  },
+  minLength: function (value, length, errorMsg) {   // 限制最小长度
+    if ( value.length < length ) {
+      return errorMsg
+    }
+  },
+  isMobile: function (value, errorMsg) {    // 手机号码格式
+    if ( !/(^1[3|5|8][0-9]{9}$)/.test(value) ){
+      return errorMsg
+    }
+  }
+}
+```
+接下来准备实现 Validator 类，Validator 类在这里作为 Context，负责接收用户的请求并委托给 strategy 对象。在给出 Validator 类的代码之前，有必要提前了解用户是如何向 Validator 类发送请求的，这有助于我们如何去编写 Validator 类代码：
+
+```
+var validataFunc = function () {
+  var validator = new Validator()     // 创建一个 validator 对象
+
+  /***************添加一些校验规则****************/
+  validator.add(registerForm.userName, 'isNonEmpty', '用户名不能为空')
+  validator.add(registerForm.password, 'minLength:6', '密码长度不能少于 6 位')
+  validator.add(registerForm.phoneNumber, 'isMobile', '手机号码格式不正确')
+
+  var errorMsg = validator.start()    // 获得校验结果
+  return errorMsg;    // 返回校验结果
+}
+
+var registerForm = document.getElementById('registerForm')
+registerForm.onsubmit = function () {
+  var errorMsg = validataFunc()   // 如果 errorMsg 有确切的返回值，说明未通过校验
+  if (errorMsg) {
+    alert(errorMsg)
+    return false    // 组织表单提交
+  }
+}
+```
+最后是 Validator 类的实现：
+
+```
+var Validator = function () {
+  this.cache = []     // 保存校验规则
+}
+
+Validator.prototype.add = function (dom, rule, errorMsg) {
+  var ary = rule.split(':')   // 把 strategy 和 参数分开
+  this.cache.push(function(){   // 把校验的步骤用空函数包装起来，并且放入 cache
+    var strategy = ary.shift()    // 用户挑选的 strategy
+    ary.unshift(dom.value)      // 把 input 的 value 添加进参数列表
+    ary.push(errorMsg)          // 把 errorMsg 添加进参数列表
+    return strategies[strategy].apply(dom, ary)
+  })
+}
+
+Validator.prototype.start = function () {
+  for (var i = 0, validatorFunc; validatorFunc = this.cache[i++];) {
+    var msg = validatorFunc()     // 开始效验，并取得校验后的返回信息
+    if (msg) {    // 如果有确切的返回值，说明校验没有通过
+      return msg
+    }
+  }
+}
+```
+
+在修改某个校验规则的时候，只需要编写少量代码，比如我们想要将用户名输入框的校验规则改成用户名不能少于 4 个字符，这时候修改是很简单的：
+
+```
+validator.add(registerForm.userName, 'isNonEmpty', '用户名不能为空')
+
+//　改成：
+validator.add(registerForm.userName, 'minLength:10', '用户名不能少于10位')
+```
+
+### 给某个文本输入框添加多种校验规则
+
+目前的表单只能对应一种校验规则，比如，只能校验输入是否为空，如果我们想要即校验它是否为空，又想校验它输入的文本不小于 10？我们期望以这样的形式进行校验：
+
+```
+validator.add(registerForm.userName, [{
+  strategy: 'isNonEmpty',
+  errorMsg: '用户名不能为空'
+}, {
+  strategy: 'minLength:6',
+  errorMsg: '用户名长度不能小于 10 位'
+}])
+```
+下面提供的代码可用于一个文本框输入框对应多种校验规则：
+
+```
+<html>
+
+<body>
+    <form action="http:// xxx.com/register" id="registerForm" method="post">
+        请输入用户名：<input type="text" name="userName" /> 请输入密码：
+        <input type="text" name="password" /> 请输入手机号码：
+        <input type="text" name="phoneNumber" />
+        <button>提交</button>
+    </form>
+    <script>
+        /***********************策略对象**************************/
+        var strategies = {
+            isNonEmpty: function(value, errorMsg) {
+                if (value === '') {
+                    return errorMsg;
+                }
+            },
+            minLength: function(value, length, errorMsg) {
+                if (value.length < length) {
+                    return errorMsg;
+                }
+            },
+            isMobile: function(value, errorMsg) {
+                if (!/(^1[3|5|8][0-9]{9}$)/.test(value)) {
+                    return errorMsg;
+                }
+            }
+        };
+        /***********************Validator 类**************************/
+        var Validator = function() {
+            this.cache = [];
+        };
+        Validator.prototype.add = function(dom, rules) {
+            var self = this;
+            for (var i = 0, rule; rule = rules[i++];) {
+                (function(rule) {
+                    var strategyAry = rule.strategy.split(':');
+                    var errorMsg = rule.errorMsg;
+                    self.cache.push(function() {
+                        var strategy = strategyAry.shift();
+                        strategyAry.unshift(dom.value);
+                        strategyAry.push(errorMsg);
+                        return strategies[strategy].apply(dom, strategyAry);
+                    });
+                })(rule)
+            }
+        };
+        Validator.prototype.start = function() {
+            for (var i = 0, validatorFunc; validatorFunc = this.cache[i++];) {
+                var errorMsg = validatorFunc();
+                if (errorMsg) {
+                    return errorMsg;
+                }
+            }
+        };
+        /***********************客户调用代码**************************/
+        var registerForm = document.getElementById('registerForm');
+        var validataFunc = function() {
+            var validator = new Validator();
+            validator.add(registerForm.userName, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '用户名不能为空'
+            }, {
+                strategy: 'minLength:6',
+                errorMsg: '用户名长度不能小于10 位'
+            }]);
+            validator.add(registerForm.password, [{
+                strategy: 'minLength:6',
+                errorMsg: '密码长度不能小于6 位'
+            }]);
+            validator.add(registerForm.phoneNumber, [{
+                strategy: 'isMobile',
+                errorMsg: '手机号码格式不正确'
+            }]);
+            var errorMsg = validator.start();
+            return errorMsg;
+        }
+        registerForm.onsubmit = function() {
+            var errorMsg = validataFunc();
+            if (errorMsg) {
+                alert(errorMsg);
+                return false;
+            }
+
+        };
+    </script>
+</body>
+
+</html>
+
+```
