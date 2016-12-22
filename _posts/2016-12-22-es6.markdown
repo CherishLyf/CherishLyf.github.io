@@ -1,0 +1,349 @@
+---
+layout:     post
+title:      "掌握 ES6/ES2015 核心内容"
+subtitle:   "掌握 ES6/ES2015 核心内容"
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - js
+    - es6
+---
+
+# ES6/ES2015 核心内容
+
+## let, const
+
+`let` 用来声明变量，`const` 用来声明常量。
+
+`let` 会为 JavaScript 声明块级作用域，用它声明的变量，只在 `let` 命令所在的代码块中有效。
+
+```
+let name = 'lyf'
+
+while (true) {
+  let name = 'yf'
+  console.log(name)   // yf
+  break
+}
+
+console.log(name)   // lyf
+```
+
+用来计数的循环变量会泄露为全局变量：
+
+```
+var a = []
+
+for (var i = 0; i < 10; i++) {
+  a[i] = function () {
+    console.log(i)
+  }
+}
+
+a[6]()  // 10
+```
+
+使用闭包或者ES6 都可以解决这个问题，
+
+```
+var a = []
+
+for (let i = 0; i < 10; i++) {
+  a[i] = function () {
+    console.log(i)
+  }
+}
+
+a[6]()   // 6
+```
+
+`const` 用来声明常量，一旦声明，值就不能改变。
+
+## Class 类的支持
+
+ES6 中添加了对类的支持，引入关键字 `class`，对象的创建和继承更加清晰直观，并且父类方法的调用，实例化，静态方法和构造函数都更加形象。
+
+```
+// 创建类
+class Animal {
+  // 构造器
+  constructor (name) {
+    this.name = name
+  }
+  // 实例方法
+  getName () {
+    console.log('Name: ' + this.name)
+  }
+}
+
+// 类的继承
+class Dog extends Animal {
+  constructor (name) {
+    // 直接调用父类构造器进行初始化
+    super(name)
+  }
+  sound () {
+    console.log('汪汪汪')
+  }
+}
+
+var animal = new Animal('动物')
+animal.getName()    // 动物
+
+var dog = new Dog('狗')
+dog.getName()     // 狗
+dog.sound()       // 汪汪汪
+
+```
+
+上面定义的类中，有 `constructor` 方法，这就是构造方法，`this` 代表实例对象。
+
+class 之间通过 `extends` 继承，比如上面 Dog 类继承 Animal 所有属性和方法。
+
+`super` 关键字，指代父类的实例（即父类的 this 对象）。
+
+## 箭头函数
+
+基本用法
+
+```
+var f = v => v
+```
+
+等价于：
+
+```
+var f = function (v) {
+  return v;
+}
+```
+
+如果箭头函数不需要参数或者需要多个参数，就是用一个圆括号代表参数部分：
+
+```
+var f = () => 5
+// 等同于
+var f = function () { return 5 }
+
+var sum = (sum1, sum2) => sum1 + sum2
+// 等同于
+var sum = function (sum1, sum2) {
+  return sum1 + sum2
+}
+```
+
+箭头函数体内的 `this` 对象，是定义时的所在对象，而不是使用时所在的对象。
+
+```
+class Dog {
+  constructor () {
+    this.sound = '汪汪汪'
+  }
+  sounding () {
+    setInterval(() => {
+      console.log(this.sound)
+    }, 1000)
+  }
+}
+
+var dog = new Dog()
+dog.sounding()
+```
+
+## 字符串模板
+
+ES6 中允许使用反引号 \` 来创建字符串，此种方法可以包含变量，用 `${var}` 表示:
+
+```
+// 产生一个随机数
+var num = Math.random()
+console.log(`num is ${num}`)
+```
+
+## 解构
+
+ES6 按照一定的模式，从数组和对象中提取值，对变量进行赋值，这被称为解构。
+
+以前为变量赋值：
+
+```
+var a = 1;
+var b = 2;
+var c = 3;
+```
+ES6 允许下面这样:
+
+```
+var [a, b, c] = [1, 2, 3]
+```
+
+如果解构不成功，变量的值会变成 `undefined`。下面这两种情况都属于解构不成功，`foo` 的值都会等于 `undefined`。
+
+```
+var [foo] = []
+var [bar, foo] = [1]
+```
+### 默认值
+
+解构允许指定默认值
+
+```
+var [foo = true] = []
+foo // true
+
+[x, y = 'b'] = ['a']    // x = 'a', y = 'b'
+[x, y = 'b'] = ['a', undefined]   // x = 'a', y = 'b'
+```
+
+### 对象解构
+
+解构不仅可以用于数组，还可以用于对象
+
+```
+var { foo, bar } = { foo: 'aaa', bar: 'bbb' }
+foo  // 'aaa'
+bar  // 'bbb'
+```
+
+对象的解构赋值实际上是以下形式的简写：
+
+```
+var { foo: foo, bar: bar } = { foo: 'aaa', bar: 'bbb' }
+```
+也就是说，对象的结构赋值的内部机制是，`先找到同名属性，然后再赋给对应的变量。真正被赋值的是后者，而不是前者。`
+
+对象的解构也可以指定默认值，
+
+```
+var { x = 3 } = {}
+x   //
+
+var {x, y = 5} = {x: 1}
+x   // 1
+y   // 5
+
+var {x: y = 3} = {}
+y     // 3
+
+var {x: y = 5} = {x: 3}
+y   // 3
+```
+### 函数参数的解构
+
+函数的参数也可以使用解构赋值
+
+```
+function add([x, y]) {
+  return x + y
+}
+
+add([1, 2])   // 3
+```
+下面是另外一个例子：
+
+```
+[[1, 2], [3, 4]].map([a, b] => a + b)
+
+```
+
+## Module
+
+ES6 提供了 `Module` 功能，它实现非常简单。
+
+### `export` 命令
+
+模块功能主要由两个命令构成：`export` 和 `import`。`export` 命令用于规定模块的对外接口，`import` 命令用于输入其他模块提供的功能。
+
+`export` 可以用来输出变量：
+
+```
+var name = 'lyf'
+var age = 20
+var sex = 'man'
+
+export {name, age, sex}
+```
+出了输出变量，还可以输出函数或者类(class),
+
+```
+export function func() {
+  return 'fun'
+}
+```
+通常情况下，export 输出的就是本来的名字，但是可以使用 `as` 关键字重命名。
+
+```
+function v1() {}
+function v2() {}
+
+export {
+  v1 as func1,
+  v1 as func2
+}
+```
+
+### `import` 命令
+
+使用 `export` 命令定义了的对外接口，其他 JS 文件就可以通过 `import` 命令加载这个模块。
+
+```
+// main.js
+
+import { name, age, sex } from './xx.js'
+```
+
+如果想为输入的变量重新取一个名字，`import` 命令就要使用 `as` 关键字，将输入的变量重命名。
+
+```
+import { name as unname } from './xx.js'
+```
+
+### 模块的整体加载
+
+除了加载某个输出值，还可以使用整体加载，即用 `*` 指定一个对象，所有输出值都加载在这个对象上。
+
+```
+// person.js
+
+export function name () {
+  return 'Lyf'
+}
+
+export function age () {
+  return 20
+}
+```
+
+加载这个模块，
+
+```
+// main.js
+import { name, age } from './person.js'
+```
+
+上面的方法是逐一加载的方法，下面是整体加载
+
+```
+import * as person from './person'
+
+console.log(person.name)
+console.log(person.age)
+```
+
+### `export default` 命令
+
+`export default` 命令，为模块指定默认输出。
+
+```
+// export-default.js
+export default function () {
+  console.log('foo')
+}
+```
+`import` 命令可以为该匿名函数指定任何名字，这时候 `import` 后面不使用大括号
+
+```
+// import-default.js
+import customerName from './export-default'
+customerName()    // 'foo'
+```
