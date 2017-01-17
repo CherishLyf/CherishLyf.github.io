@@ -1,0 +1,53 @@
+---
+layout:     post
+title:      "移动端H5滚动穿透问题解决办法"
+subtitle:   "移动端H5滚动穿透问题解决办法"
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - 移动端
+---
+
+
+### 问题
+
+今天做过年红包页面，有一个弹层的需求，当弹层有 `fixed` 遮罩时，屏幕滚动能够滑动弹层下面内容，体验非常不友好，百度了一下找到了一种比较好的办法，顺带做下记录。
+
+
+### 解决办法
+
+[原文链接](https://uedsky.com/2016-06/mobile-modal-scroll/)
+
+```
+body.open-modal {
+  position: fixed;
+  width: 100%;
+}
+```
+
+如果只是 css，滚动条的位置就会丢失 <br>
+需要 js 来保持滚动条的位置，并且关闭时还原位置
+
+```
+/**
+  * ModalHelper helpers resolve the modal scrolling issue on mobile devices
+  * https://github.com/twbs/bootstrap/issues/15852
+  * requires document.scrollingElement polyfill https://uedsky.com/demo/src/polyfills/document.scrollingElement.js
+  https://github.com/mathiasbynens/document.scrollingElement
+  */
+var ModalHelper = (function(bodyCls) {
+  var scrollTop;
+  return {
+    afterOpen: function() {
+      scrollTop = document.scrollingElement.scrollTop;
+      document.body.classList.add(bodyCls);
+      document.body.style.top = -scrollTop + 'px';
+    },
+    beforeClose: function() {
+      document.body.classList.remove(bodyCls);
+      // scrollTop lost after set position:fixed, restore it back.
+      document.scrollingElement.scrollTop = scrollTop;
+    }
+  };
+})('modal-open');
+```
