@@ -1,0 +1,79 @@
+---
+layout:     post
+title:      "【转】使用 Express + MongoDB 搭建多人博客"
+subtitle:   "【转】使用 Express + MongoDB 搭建多人博客"
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - 移动端
+---
+
+[原文地址](https://github.com/nswbmw/N-blog)
+
+## 开发环境
+
+Node.js: 6.9.1
+
+MongoDB: 3.2.10
+
+Express: 4.14.0
+
+## 准备工作
+
+### 目录结构
+
+创建文件夹 myblog , 在 myblog 下面创建以下目录：
+
+1. `models`: 存放操作数据库的文件
+2. `public`: 存放静态文件，如样式、图片等
+3. `routes`: 存放路由文件
+4. `views`:  存放模板文件
+5. `index.js`: 程序主文件
+6. `package.json`: 存储项目名、描述、作者、依赖等等信息
+
+> 遵循了 MVC（模型(model)－视图(view)－控制器(controller/route)） 的开发模式。
+
+### 安装依赖
+
+1. `express`: web 框架
+2. `express-session`: session 中间件
+3. `connect-mongo`: 将 session 存储于 mongodb，结合 express-session 使用
+4. `connect-flash`: 页面通知提示的中间件，基于 session 实现
+5. `ejs`: 模板
+6. `express-formidable`: 接收表单及文件的上传中间件
+7. `config-lite`: 读取配置文件
+8. `marked`: markdown 解析
+9. `moment`: 时间格式化
+10. `mongolass`: mongodb 驱动
+11. `objectid-to-timestamp`: 根据 ObjectId 生成时间戳
+12. `sha1`: sha1 加密，用于密码加密
+13. `winston`: 日志
+14. `express-winston`: 基于 winston 的用于 express 的日志中间件
+
+## 配置文件
+
+不管大项目还是小项目，将配置文件与代码分离是一个好的做法。我们通常会将配置写到一个配置文件中，如 `config.json` 或者 `config.js`，并存放在根目录。通常会有许多开发环境，如本地开发环境、测试环境和线上环境，不同的环境配置不同，不可能每次部署都去修改或者引用 `config.test.js` 或者 `config.production.js`。`config-lite` 模块正是所需要的。
+
+如果程序以 `NODE_ENV=test node app` 启动，则通过 `require('config-lite')` 会依次降级查找 `config/test.js`、`config/test.json`、`config/test.node`、`config/test.yml`、`config/test.yaml` 并合并 default 配置; 如果程序以 `NODE_ENV=production node app` 启动，则通过 `require('config-lite')` 会依次降级查找 `config/production.js`、`config/production.json`、`config/production.node`、`config/production.yml`、`config/production.yaml` 并合并 default 配置。
+
+在 `myblog` 下新建 `config` 目录，在该目录下新建 `default.js`，添加代码
+
+`config/default.js`
+
+```
+module.exports = {
+  port: 3000,
+  session: {
+    secret: 'myblog',
+    key: 'blog',
+    maxAge: 2592000000
+  },
+  mongodb: 'mongodb://localhost:27017/myblog'
+}
+
+```
+配置释义：
+
+1. `port`: 程序启动要监听的端口号
+2. `session`: `express-session` 的配置信息
+3. `mongodb`: `mongodb` 的地址，`myblog` 的 db 名

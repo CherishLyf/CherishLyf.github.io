@@ -1,0 +1,58 @@
+---
+layout:     post
+title:      "axios 中 post 使用"
+subtitle:   "和后端配合完成项目时，使用到 axios 这个库，post 提交时遇到点问题，网上搜了搜找到了解决办法"
+author:     "刘一凡"
+header-img: "img/post-bg-2015.jpg"
+tags:
+    - Ajax
+---
+
+今天看和后端配合完成项目时，使用到 axios 这个库，post 提交时遇到点问题，网上搜了搜找到了解决办法
+
+## 问题
+
+使用 `axios` 做 `post` 提交
+
+```
+var data = {
+  name: Lyf,
+  year: 21
+}
+
+axios.post('http://example.com/add', data, {
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  },
+})
+.then((res) => {
+  console.log(res)
+})
+
+```
+
+结果一直报错，后来发现后端都没有接收到数据。。。
+
+## 解决
+
+然后网上搜了一下，别人说是参数没有序列化，使用 nodejs 自带的一个 [querystring](http://yijiebuyi.com/blog/d37512fc6df0fc4d0adfc2ec5c3d46ff.html) 模块，`querystring.stringify` 方法可以将对象格式化成参数字符串，问题解决。。
+
+
+```
+import qs from 'query-string'
+
+var data = {
+  name: Lyf,
+  year: 21
+}
+
+axios.post('http://example.com/add', qs.stringify(data), {
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  },
+})
+.then((res) => {
+  console.log(res)
+})
+
+```
