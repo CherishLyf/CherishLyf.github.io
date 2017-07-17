@@ -8,6 +8,8 @@ tags:
     - nodejs
 ---
 
+### 正文
+
 女友做销售，需要搜集一些客户资料（公司名称、联系电话、联系人），我一问，竟然是从 58 上一个一个找？！？！
 
 作为一名帅气负责的程序员~~，当然要为女友分担压力，心里一想，使用爬虫是不是非常方便。
@@ -81,9 +83,9 @@ function getCompanyInfo (url) {
 
 ```
 // 限流，并发请求 5 个
+var concurrencyCount = 0; // 并发连接数的计数器
 async.mapLimit(companyUrls, 5, function (url, callback) {
-  getCompanyInfo(url)
-  callback()
+  getCompanyInfo(url, callback)
   // cb()
 }, function (err, result) {
     // console.log('final:');
@@ -91,9 +93,18 @@ async.mapLimit(companyUrls, 5, function (url, callback) {
 })
 
 // 每次获取企业信息时触发一次 'companyInfo'
-function getCompanyInfo (url) {
+function getCompanyInfo (url, cb) {
   ...
-  ep.emit('companyInfo', company)
+  concurrencyCount++;
+  console.log('现在的并发数是', concurrencyCount, '，正在抓取的是', url);
+
+  superagent.get(url)
+  .end(function (err, res) {
+    ...
+    concurrencyCount--;
+    cb(null, url + ' 爬取完成!')
+    ep.emit('companyInfo', company)
+  }
 }
 
 // 监听遍历次数
@@ -116,6 +127,8 @@ var http = require("http"),
 var catchUrl = 'http://qy.58.com/zz/'
 var companyUrls = []      // 需要爬的企业列表
 var companyList = []      // 公司列表
+// 并发连接数的计数器
+var concurrencyCount = 0;
 
 var ep = new eventproxy()
 
@@ -161,8 +174,7 @@ function app() {
       })
       // 限流
       async.mapLimit(companyUrls, 5, function (url, callback) {
-        getCompanyInfo(url)
-        callback()
+        getCompanyInfo(url, callback)
         // cb()
       }, function (err, result) {
           // console.log('final:');
@@ -173,12 +185,15 @@ function app() {
     })
 }
 
-function getCompanyInfo (url) {
+function getCompanyInfo (url, cb) {
   var company = {
     companyName: '',
     companyContact: '',
     contactPhone: []
   }
+
+  concurrencyCount++;
+  console.log('现在的并发数是', concurrencyCount, '，正在抓取的是', url);
 
   superagent.get(url)
     .end(function (err, res) {
@@ -199,6 +214,8 @@ function getCompanyInfo (url) {
 
       // console.log(company)
       // companyList.push(company)
+      concurrencyCount--;
+      cb(null, url + ' 爬取完成!')
       ep.emit('companyInfo', company)
     })
 }
@@ -207,5 +224,22 @@ app()
 ```
 
 5.对获取到的数据进行展示
+
+### 补充
+
+nodejs 默认的编码方式为 utf-8，如果原始网页的编码方式不一致会出现乱码。
+
+解决办法:
+
+```
+var charset = require('superagent-charset'),
+    superagent = charset(require('superagent'));
+
+superagent.get(url)
+  .charset('gbk')
+  .end(function (err, sres) {
+
+  }
+```
 
 ![1](/img/20170609-spider-1.jpg)
